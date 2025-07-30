@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>screen-spec</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Roboto Mono', monospace;
+            background-color: #f8f9fa;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 2rem;
+            position: relative;
+        }
+        
+        .reset-button {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            background-color: rgba(108, 117, 125, 0.7);
+            color: rgba(255, 255, 255, 0.8);
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            z-index: 1000;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+            padding: 0;
+            font-family: 'Material Icons';
+            font-size: 20px;
+            display: grid;
+            place-items: center;
+            opacity: 0.6;
+        }
+        
+        .reset-button:hover {
+            background-color: rgba(90, 98, 104, 0.9);
+            color: white;
+            opacity: 1;
+            transform: scale(1.02);
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        @media (max-width: 600px) {
+            h1 { font-size: 1.8rem; }
+        }
+        
+        .screens-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 2rem;
+            max-width: 100%;
+        }
+        
+        .container {
+            background: white;
+            padding: 1rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+            min-width: 280px;
+            width: 100%;
+            position: relative;
+        }
+        
+        .screen-number {
+            position: absolute;
+            top: 0;
+            right: 16px;
+            background: white;
+            border: 2px solid;
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            height: 28px;
+            padding: 0 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            font-weight: bold;
+            color: white;
+            z-index: 10;
+            min-width: 32px;
+            box-sizing: border-box;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .screen-number:hover {
+            background: #f44336;
+            border-color: #f44336;
+        }
+
+        .screen-number:hover::after {
+            content: '×';
+            position: absolute;
+            color: white;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .screen-number:hover .number-text {
+            opacity: 0;
+        }
+
+        .screen-number.no-close:hover {
+            background: white;
+            border-color: inherit;
+        }
+
+        .screen-number.no-close:hover::after {
+            display: none;
+        }
+
+        .screen-number.no-close:hover .number-text {
+            opacity: 1;
+        }
+
+        .remove-screen {
+            display: none !important;
+        }
+        
+        .remove-screen {
+            position: absolute;
+            top: 0.25rem;
+            right: 0.25rem;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: #aaa;
+            cursor: pointer;
+        }
+        
+        .remove-screen:hover {
+            color: #f00;
+        }
+        
+        .field-wrapper {
+            margin-bottom: 0.75rem;
+        }
+        
+        .field-wrapper label {
+            display: block;
+            font-size: 0.8rem;
+            margin-bottom: 0.3rem;
+            color: #555;
+        }
+        
+        .input-wrapper {
+            position: relative;
+        }
+        
+        .input-wrapper input,
+        .input-wrapper select {
+            width: 100%;
+            padding: 0.5rem 2.5rem 0.5rem 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
+        
+        .input-wrapper select {
+            appearance: none;
+            background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23666%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095.1c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.9z%22%2F%3E%3C%2Fsvg%3E');
+            background-repeat: no-repeat;
+            background-position: right 0.5rem center;
+            background-size: 0.6rem auto;
+        }
+        
+        .unit {
+            position: absolute;
+            right: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #666;
+            font-size: 0.85rem;
+            pointer-events: none;
+        }
+
+        .resolution,
+        .diagonal-scaling {
+            display: flex;
+            gap: 0.4rem;
+            align-items: center;
+        }
+        
+        .add-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            max-width: 400px;
+            min-width: 320px;
+            width: 100%;
+        }
+        
+        #add-screen {
+            font-size: 1.5rem;
+            padding: 0.5rem 1rem;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        
+        #add-screen:hover {
+            background-color: #0056b3;
+        }
+        
+        .outputs-section {
+            margin-top: 1rem;
+        }
+        
+        .output-section-title {
+            font-size: 0.9rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            color: #333;
+            text-transform: uppercase;
+        }
+        
+        .output-item {
+            background-color: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            padding: 0.75rem;
+            margin-bottom: 1rem;
+        }
+        
+        .output-item:last-child,
+        .output-item.no-margin {
+            margin-bottom: 0;
+        }
+        
+        .output-line {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .output-label {
+            font-size: 0.875rem;
+            color: #555;
+        }
+        
+        .output-value {
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .output-unit {
+            font-size: 0.75rem;
+            color: #666;
+            margin-left: 0.25rem;
+        }
+        
+        .output-separator {
+            height: 1px;
+            background-color: #e9ecef;
+            margin: 0.4rem 0;
+        }
+        
+        /* Visualizer widget styles */
+        .screen-visualizer {
+            position: relative;
+            background: white;
+            padding: 1rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+            width: 100%;
+            max-width: 1000px;
+            min-width: 280px;
+            height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .visualizer-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .visualizer-title {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #333;
+            margin: 0;
+        }
+
+        .view-mode-controls {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 10;
+        }
+
+        .mode-toggle {
+            display: flex;
+            background: #f8f9fa;
+            border-radius: 6px;
+            padding: 2px;
+            border: 1px solid #e9ecef;
+        }
+
+        .mode-toggle input[type="radio"] {
+            display: none;
+        }
+
+        .mode-toggle label {
+            padding: 0.375rem 0.75rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            color: #666;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .mode-toggle input[type="radio"]:checked + label {
+            background: #007bff;
+            color: white;
+        }
+
+        .visualizer-canvas {
+            display: block;
+            max-width: 100%;
+            max-height: 100%;
+        }
+
+        .canvas-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+        }
+
+        .canvas-overlay .view-mode-controls {
+            pointer-events: auto;
+        }
+
+        .mode-indicator {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+        }
+
+        @media (max-width: 768px) {
+            .visualizer-header {
+                flex-direction: column;
+                gap: 0.75rem;
+                align-items: stretch;
+            }
+
+            .view-mode-controls {
+                justify-content: center;
+            }
+
+            .mode-toggle {
+                justify-content: center;
+            }
+        }
+        
+        footer {
+            margin-top: 3rem;
+            padding: 1rem;
+            text-align: center;
+            color: #666;
+            font-size: 0.8rem;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <button class="reset-button" id="reset-button">restart_alt</button>
+    
+    <h1>screen-spec</h1>
+    
+    <!-- Add visualizer widget before screens container -->
+    <div class="screen-visualizer">
+        <canvas class="visualizer-canvas" id="screenCanvas"></canvas>
+        <div class="canvas-overlay">
+            <div class="view-mode-controls">
+                <div class="mode-toggle">
+                    <input type="radio" id="realSize" name="viewMode" value="realSize" checked>
+                    <label for="realSize">Size</label>
+                    <input type="radio" id="fovBased" name="viewMode" value="fovBased">
+                    <label for="fovBased">FOV</label>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="screens-container" id="screens-container">
+        <div class="container" data-screen-id="template" style="display: none;">
+            <div class="screen-number">1</div>
+            <button class="remove-screen" style="display: none;">×</button>
+            
+            <div class="field-wrapper">
+                <label for="preset-template">Preset</label>
+                <div class="input-wrapper">
+                    <select id="preset-template">
+                        <option value="">Custom</option>
+                        <option value="24-1920-1080" selected>24" FHD (1920 x 1080)</option>
+                        <option value="27-2560-1440">27" QHD (2560 x 1440)</option>
+                        <option value="27-3840-2160">27" UHD 4K (3840 x 2160)</option>
+                        <option value="27-5120-2880">27" UHD 5K (5120 x 2880)</option>
+                        <option value="32-2560-1440">32" QHD (2560 x 1440)</option>
+                        <option value="32-3840-2160">32" UHD 4K (3840 x 2160)</option>
+                        <option value="32-6144-3456">32" 6K (6144 x 3456)</option>
+                        <option value="32-7680-4320">32" UHD 8K (7680 x 4320)</option>
+                        <option value="34-3440-1440">34" UWQHD (3440 x 1440)</option>
+                        <option value="38-3840-1600">38" WUHD (3840 x 1600)</option>
+                        <option value="40-5120-2160">40" WUHD (5120 x 2160)</option>
+                        <option value="43-3840-2160">43" UHD 4K (3840 x 2160)</option>
+                        <option value="45-5120-2160">45" WUHD (5120 x 2160)</option>
+                        <option value="49-5120-1440">49" DQHD (5120 x 1440)</option>
+                        <option value="57-7680-2160">57" DUHD (7680 x 2160)</option>
+                        <option value="65-7680-4320">65" UHD 8K (7680 x 4320)</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="field-wrapper">
+                <div class="diagonal-scaling">
+                    <div>
+                        <label for="diagonal-template">Diagonal</label>
+                        <div class="input-wrapper">
+                            <input type="number" id="diagonal-template" min="0" step="1">
+                            <span class="unit">in</span>
+                        </div>
+                    </div>
+                    <div>
+                        <label for="scaling-template">Scaling</label>
+                        <div class="input-wrapper">
+                            <input type="number" id="scaling-template" min="100" step="5" value="100">
+                            <span class="unit">%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="field-wrapper">
+                <label>Resolution</label>
+                <div class="resolution">
+                    <div class="input-wrapper">
+                        <input type="number" id="width-template" min="0">
+                        <span class="unit">px</span>
+                    </div>
+                    <span>×</span>
+                    <div class="input-wrapper">
+                        <input type="number" id="height-template" min="0">
+                        <span class="unit">px</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="field-wrapper">
+                <div class="resolution">
+                    <div>
+                        <label for="distance-template">Distance</label>
+                        <div class="input-wrapper">
+                            <input type="number" id="distance-template" min="0" step="50" value="600">
+                            <span class="unit">mm</span>
+                        </div>
+                    </div>
+                    <div>
+                        <label for="curvature-template">Curvature</label>
+                        <div class="input-wrapper">
+                            <input type="number" id="curvature-template" min="0" step="100" placeholder="Flat">
+                            <span class="unit">mm</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="outputs-section">
+                <div class="output-section-title" style="display: none;">Native</div>
+                <div class="output-item">
+                    <div class="output-line">
+                        <span class="output-label">Dimensions</span>
+                        <span class="output-value">-- x --</span>
+                    </div>
+                    <div class="output-separator"></div>
+                    <div class="output-line">
+                        <span class="output-label">FOV</span>
+                        <span class="output-value">-- x --</span>
+                    </div>
+                    <div class="output-separator"></div>
+                    <div class="output-line">
+                        <span class="output-label">Pixel Density</span>
+                        <span class="output-value">--<span class="output-unit">PPI</span></span>
+                    </div>
+                    <div class="output-separator"></div>
+                    <div class="output-line">
+                        <span class="output-label">Visual Density</span>
+                        <span class="output-value">--<span class="output-unit">PPD</span></span>
+                    </div>
+                </div>
+                
+                <div class="output-section-title" style="display: none;">Scaled</div>
+                <div class="output-item" style="display: none;">
+                    <div class="output-line">
+                        <span class="output-label">Resolution</span>
+                        <span class="output-value">-- x --</span>
+                    </div>
+                    <div class="output-separator"></div>
+                    <div class="output-line">
+                        <span class="output-label">Pixel Density</span>
+                        <span class="output-value">--<span class="output-unit">PPI</span></span>
+                    </div>
+                    <div class="output-separator"></div>
+                    <div class="output-line">
+                        <span class="output-label">Visual Density</span>
+                        <span class="output-value">--<span class="output-unit">PPD</span></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="add-wrapper" id="add-wrapper">
+            <button id="add-screen">+</button>
+        </div>
+    </div>
+    
+    <footer>
+        vibecoded
+        <br>
+        &copy; 2025 Plab
+    </footer>
+    
+    <script src="Screen.js"></script>
+    <script src="ScreenVisualizer.js"></script>
+    <script>
+        // Screen Manager - Centralized state and operations
+        class ScreenManager {
+            constructor() {
+                this.screens = [];
+                this.visualizer = new ScreenVisualizer('screenCanvas');
+                this.screensContainer = document.getElementById('screens-container');
+                this.addWrapper = document.getElementById('add-wrapper');
+                this.nextId = 1;
+                this.colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FECA57', '#FF9FF3', '#54A0FF'];
+                this.usedNumbers = new Set(); // Track which screen numbers are in use
+                
+                this.init();
+            }
+            
+            init() {
+                // Initialize with first screen
+                this.addScreen({
+                    preset: '24-1920-1080',
+                    diagonal: 24,
+                    width: 1920,
+                    height: 1080,
+                    distance: 600,
+                    curvature: null,
+                    scaling: 100
+                });
+                
+                // Setup visualizer controls
+                document.querySelectorAll('input[name="viewMode"]').forEach(radio => {
+                    radio.addEventListener('change', (e) => {
+                        this.visualizer.setViewMode(e.target.value);
+                    });
+                });
+                
+                // Setup add button
+                document.getElementById('add-screen').addEventListener('click', () => {
+                    if (this.screens.length < 4) {
+                        this.addScreen({
+                            preset: '24-1920-1080',
+                            diagonal: 24,
+                            width: 1920,
+                            height: 1080,
+                            distance: 600,
+                            curvature: null,
+                            scaling: 100
+                        });
+                    }
+                });
+                
+                // Setup reset button
+                document.getElementById('reset-button').addEventListener('click', () => {
+                    this.resetToDefault();
+                });
+                
+                // Setup screen number click for removal
+                this.screensContainer.addEventListener('click', (e) => {
+                    if (e.target.classList.contains('screen-number') && !e.target.classList.contains('no-close')) {
+                        const screenId = e.target.closest('.container').dataset.screenId;
+                        this.removeScreen(screenId);
+                    }
+                });
+            }
+            
+            addScreen(data = {}) {
+                const screenId = this.nextId++;
+                
+                // Find the lowest available screen number
+                let screenNumber = 1;
+                while (this.usedNumbers.has(screenNumber)) {
+                    screenNumber++;
+                }
+                this.usedNumbers.add(screenNumber);
+                
+                const screenData = {
+                    id: screenId,
+                    screenNumber: screenNumber,
+                    preset: data.preset || '',
+                    diagonal: data.diagonal || null,
+                    width: data.width || null,
+                    height: data.height || null,
+                    distance: data.distance || 600,
+                    curvature: data.curvature || null,
+                    scaling: data.scaling || 100
+                };
+                
+                this.screens.push(screenData);
+                this.renderScreen(screenData);
+                this.updateAddButtonVisibility();
+                this.updateCloseButtonAvailability();
+                this.updateVisualizer();
+            }
+            
+            removeScreen(screenId) {
+                if (this.screens.length <= 1) return;
+                
+                const screenData = this.screens.find(screen => screen.id == screenId);
+                if (screenData) {
+                    this.usedNumbers.delete(screenData.screenNumber);
+                }
+                
+                this.screens = this.screens.filter(screen => screen.id != screenId);
+                document.querySelector(`[data-screen-id="${screenId}"]`).remove();
+                this.updateAddButtonVisibility();
+                this.updateCloseButtonAvailability();
+                this.updateVisualizer();
+            }
+            
+            updateScreen(screenId, field, value) {
+                const screen = this.screens.find(s => s.id == screenId);
+                if (!screen) return;
+                
+                screen[field] = value;
+                this.calculateAndRenderScreen(screenId);
+                this.updateVisualizer();
+            }
+            
+            renderScreen(screenData) {
+                const container = this.createScreenElement(screenData);
+                this.screensContainer.insertBefore(container, this.addWrapper);
+                this.attachListeners(container, screenData.id);
+                this.calculateAndRenderScreen(screenData.id);
+            }
+            
+            createScreenElement(screenData) {
+                const template = this.screensContainer.querySelector('.container');
+                const container = template.cloneNode(true);
+                
+                container.dataset.screenId = screenData.id;
+                container.style.display = 'block'; // Make the cloned container visible
+                
+                // Set screen number and color based on persistent screenNumber
+                const screenNumber = screenData.screenNumber;
+                const color = this.colors[(screenNumber - 1) % this.colors.length];
+                
+                const numberElement = container.querySelector('.screen-number');
+                numberElement.innerHTML = `<span class="number-text">${screenNumber}</span>`;
+                numberElement.style.backgroundColor = color;
+                numberElement.style.borderColor = color;
+                
+                // Set no-close class if this is the only screen
+                if (this.screens.length === 1) {
+                    numberElement.classList.add('no-close');
+                }
+                
+                // Update IDs and values
+                const elements = [
+                    'preset', 'diagonal', 'width', 'height', 
+                    'distance', 'curvature', 'scaling'
+                ];
+                
+                elements.forEach(name => {
+                    const input = container.querySelector(`[id^="${name}-"]`);
+                    const label = container.querySelector(`label[for^="${name}-"]`);
+                    
+                    if (input) {
+                        input.id = `${name}-${screenData.id}`;
+                        input.value = screenData[name] || (name === 'scaling' ? '100' : '');
+                        if (name === 'curvature' && !screenData[name]) {
+                            input.placeholder = 'Flat';
+                        }
+                    }
+                    if (label) {
+                        label.setAttribute('for', `${name}-${screenData.id}`);
+                    }
+                });
+                
+                return container;
+            }
+            
+            attachListeners(container, screenId) {
+                const inputs = {
+                    preset: container.querySelector(`#preset-${screenId}`),
+                    diagonal: container.querySelector(`#diagonal-${screenId}`),
+                    width: container.querySelector(`#width-${screenId}`),
+                    height: container.querySelector(`#height-${screenId}`),
+                    distance: container.querySelector(`#distance-${screenId}`),
+                    curvature: container.querySelector(`#curvature-${screenId}`),
+                    scaling: container.querySelector(`#scaling-${screenId}`)
+                };
+
+                inputs.preset.addEventListener('change', (e) => {
+                    const value = e.target.value;
+                    if (value) {
+                        const [diag, w, h] = value.split('-');
+                        this.updateScreen(screenId, 'preset', value);
+                        this.updateScreen(screenId, 'diagonal', parseFloat(diag));
+                        this.updateScreen(screenId, 'width', parseInt(w));
+                        this.updateScreen(screenId, 'height', parseInt(h));
+                        
+                        // Update DOM values
+                        inputs.diagonal.value = diag;
+                        inputs.width.value = w;
+                        inputs.height.value = h;
+                    } else {
+                        this.updateScreen(screenId, 'preset', '');
+                    }
+                });
+
+                const updatePreset = () => {
+                    const diagVal = parseFloat(inputs.diagonal.value);
+                    const wVal = parseInt(inputs.width.value);
+                    const hVal = parseInt(inputs.height.value);
+
+                    this.updateScreen(screenId, 'diagonal', diagVal);
+                    this.updateScreen(screenId, 'width', wVal);
+                    this.updateScreen(screenId, 'height', hVal);
+
+                    if (!isNaN(diagVal) && !isNaN(wVal) && !isNaN(hVal)) {
+                        const matchingOption = Array.from(inputs.preset.options).find(option => {
+                            if (!option.value) return false;
+                            const [optDiag, optW, optH] = option.value.split('-').map((v, i) => i === 0 ? parseFloat(v) : parseInt(v));
+                            return optDiag === diagVal && optW === wVal && optH === hVal;
+                        });
+                        
+                        const presetValue = matchingOption ? matchingOption.value : '';
+                        inputs.preset.value = presetValue;
+                        this.updateScreen(screenId, 'preset', presetValue);
+                    } else {
+                        inputs.preset.value = '';
+                        this.updateScreen(screenId, 'preset', '');
+                    }
+                };
+
+                inputs.diagonal.addEventListener('input', updatePreset);
+                inputs.width.addEventListener('input', updatePreset);
+                inputs.height.addEventListener('input', updatePreset);
+                
+                inputs.distance.addEventListener('input', () => {
+                    this.updateScreen(screenId, 'distance', parseFloat(inputs.distance.value));
+                });
+                
+                inputs.curvature.addEventListener('input', () => {
+                    const value = inputs.curvature.value;
+                    if (value === '0') {
+                        inputs.curvature.value = '';
+                    }
+                    const curvature = value === '' || value === '0' ? null : parseFloat(value);
+                    this.updateScreen(screenId, 'curvature', curvature);
+                });
+                
+                inputs.scaling.addEventListener('input', () => {
+                    this.updateScreen(screenId, 'scaling', parseFloat(inputs.scaling.value));
+                });
+            }
+            
+            calculateAndRenderScreen(screenId) {
+                const screen = this.screens.find(s => s.id == screenId);
+                const container = document.querySelector(`[data-screen-id="${screenId}"]`);
+                
+                if (!screen || !container) return;
+                
+                const outputContainers = container.querySelectorAll('.output-item');
+                const nativeOutputs = outputContainers[0].querySelectorAll('.output-value');
+                const scaledOutputs = outputContainers[1].querySelectorAll('.output-value');
+                const nativeTitle = container.querySelector('.output-section-title');
+                const scaledTitle = container.querySelectorAll('.output-section-title')[1];
+                const scaledContainer = outputContainers[1];
+                
+                const showScaled = screen.scaling !== 100;
+                nativeTitle.style.display = showScaled ? 'block' : 'none';
+                scaledTitle.style.display = showScaled ? 'block' : 'none';
+                scaledContainer.style.display = showScaled ? 'block' : 'none';
+                
+                if (showScaled) {
+                    outputContainers[0].classList.remove('no-margin');
+                } else {
+                    outputContainers[0].classList.add('no-margin');
+                }
+                
+                const { diagonal, width, height, distance, curvature, scaling } = screen;
+                
+                if (isNaN(diagonal) || isNaN(width) || isNaN(height) || isNaN(distance) || isNaN(scaling)) {
+                    this.renderEmptyOutputs(nativeOutputs, scaledOutputs, showScaled);
+                    return;
+                }
+
+                try {
+                    const screenCalc = new Screen(diagonal, [width, height], distance, curvature, scaling / 100);
+                    this.renderCalculatedOutputs(screenCalc, nativeOutputs, scaledOutputs, showScaled);
+                } catch (error) {
+                    console.error('Calculation error:', error);
+                    this.renderErrorOutputs(nativeOutputs, scaledOutputs, showScaled);
+                }
+            }
+            
+            renderEmptyOutputs(nativeOutputs, scaledOutputs, showScaled) {
+                nativeOutputs[0].textContent = '-- x --';
+                nativeOutputs[1].textContent = '-- x --';
+                nativeOutputs[2].innerHTML = '--<span class="output-unit">PPI</span>';
+                nativeOutputs[3].innerHTML = '--<span class="output-unit">PPD</span>';
+                if (showScaled) {
+                    scaledOutputs[0].textContent = '-- x --';
+                    scaledOutputs[1].innerHTML = '--<span class="output-unit">PPI</span>';
+                    scaledOutputs[2].innerHTML = '--<span class="output-unit">PPD</span>';
+                }
+            }
+            
+            renderCalculatedOutputs(screenCalc, nativeOutputs, scaledOutputs, showScaled) {
+                nativeOutputs[0].innerHTML = `${Math.round(screenCalc.width)} x ${Math.round(screenCalc.height)}<span class="output-unit">mm</span>`;
+                nativeOutputs[1].innerHTML = `${screenCalc.fov_horizontal.toFixed(1)} x ${screenCalc.fov_vertical.toFixed(1)}<span class="output-unit">deg</span>`;
+                nativeOutputs[2].innerHTML = `${screenCalc.ppi}<span class="output-unit">PPI</span>`;
+                nativeOutputs[3].innerHTML = `${screenCalc.ppd.toFixed(1)}<span class="output-unit">PPD</span>`;
+                
+                if (showScaled) {
+                    scaledOutputs[0].innerHTML = `${screenCalc.resolution_scaled[0]} x ${screenCalc.resolution_scaled[1]}<span class="output-unit">px</span>`;
+                    scaledOutputs[1].innerHTML = `${screenCalc.ppi_scaled}<span class="output-unit">PPI</span>`;
+                    scaledOutputs[2].innerHTML = `${screenCalc.ppd_scaled.toFixed(1)}<span class="output-unit">PPD</span>`;
+                }
+            }
+            
+            renderErrorOutputs(nativeOutputs, scaledOutputs, showScaled) {
+                nativeOutputs[0].textContent = 'Error';
+                nativeOutputs[1].textContent = 'Error';
+                nativeOutputs[2].innerHTML = 'Error<span class="output-unit">PPI</span>';
+                nativeOutputs[3].innerHTML = 'Error<span class="output-unit">PPD</span>';
+                if (showScaled) {
+                    scaledOutputs[0].textContent = 'Error';
+                    scaledOutputs[1].innerHTML = 'Error<span class="output-unit">PPI</span>';
+                    scaledOutputs[2].innerHTML = 'Error<span class="output-unit">PPD</span>';
+                }
+            }
+            
+            updateRemoveButtonsVisibility() {
+                // No longer needed since screen numbers handle removal
+            }
+            
+            updateCloseButtonAvailability() {
+                const containers = this.screensContainer.querySelectorAll('.container:not([data-screen-id="template"])');
+                const hasOnlyOneScreen = containers.length === 1;
+                
+                containers.forEach((container) => {
+                    const numberElement = container.querySelector('.screen-number');
+                    
+                    // Add or remove no-close class based on whether this is the last screen
+                    if (hasOnlyOneScreen) {
+                        numberElement.classList.add('no-close');
+                    } else {
+                        numberElement.classList.remove('no-close');
+                    }
+                });
+            }
+            
+            updateAddButtonVisibility() {
+                this.addWrapper.style.display = this.screens.length >= 4 ? 'none' : 'flex';
+            }
+            
+            updateVisualizer() {
+                const validScreens = this.screens
+                    .filter(screen => {
+                        const { diagonal, width, height, distance, scaling } = screen;
+                        return !isNaN(diagonal) && !isNaN(width) && !isNaN(height) && !isNaN(distance) && !isNaN(scaling);
+                    })
+                    .map(screen => {
+                        try {
+                            const screenObj = new Screen(screen.diagonal, [screen.width, screen.height], screen.distance, screen.curvature, screen.scaling / 100);
+                            // Preserve the screenNumber for visualization
+                            screenObj.screenNumber = screen.screenNumber;
+                            return screenObj;
+                        } catch (error) {
+                            return null;
+                        }
+                    })
+                    .filter(screen => screen !== null);
+                
+                this.visualizer.updateScreens(validScreens);
+            }
+            
+            resetToDefault() {
+                // Remove all existing screen containers (except template)
+                const containers = this.screensContainer.querySelectorAll('.container:not([data-screen-id="template"])');
+                containers.forEach(container => container.remove());
+                
+                // Reset state
+                this.screens = [];
+                this.nextId = 1;
+                this.usedNumbers.clear();
+                
+                // Add default screen
+                this.addScreen({
+                    preset: '24-1920-1080',
+                    diagonal: 24,
+                    width: 1920,
+                    height: 1080,
+                    distance: 600,
+                    curvature: null,
+                    scaling: 100
+                });
+            }
+        }
+        
+        // Initialize the application
+        const screenManager = new ScreenManager();
+    </script>
+</body>
+</html>
