@@ -59,7 +59,16 @@ const CONFIG = {
     // Timing Constants
     TIMING: {
         DEBOUNCE_DELAY: 100, // milliseconds
-        ANIMATION_DURATION: 300 // milliseconds
+        ANIMATION_DURATION: 200, // milliseconds
+        TOOLTIP_DELAY: 500, // milliseconds
+        AUTO_SAVE_DELAY: 500 // milliseconds for auto-save debouncing
+    },
+
+    // Storage Configuration
+    STORAGE: {
+        KEY: 'screen-spec-calculator-state',
+        VERSION: '1.0',
+        AUTO_SAVE: true
     },
 
     // UI Dimensions and Spacing

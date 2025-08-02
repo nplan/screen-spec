@@ -3,6 +3,7 @@ import { CONFIG } from './config.js';
 import { Screen } from './Screen.js';
 import { ScreenVisualizer } from './ScreenVisualizer.js';
 import { ValidationManager } from './ValidationManager.js';
+import { StorageManager } from './StorageManager.js';
 
 // Screen Manager - Centralized state and operations
 class ScreenManager {
@@ -10,33 +11,49 @@ class ScreenManager {
         this.screens = [];
         this.visualizer = new ScreenVisualizer(CONFIG.SELECTORS.CANVAS_ID);
         this.validator = new ValidationManager();
+        this.storage = new StorageManager();
         this.screensContainer = document.getElementById(CONFIG.SELECTORS.SCREENS_CONTAINER_ID);
         this.addWrapper = document.getElementById(CONFIG.SELECTORS.ADD_WRAPPER_ID);
         this.nextId = 1;
         this.colors = CONFIG.COLORS.SCREEN_COLORS;
         this.usedNumbers = new Set(); // Track which screen numbers are in use
+        this.autoSaveTimeout = null; // For debounced auto-save
         
         this.init();
     }
     
     init() {
-        // Initialize with first screen
-        this.addScreen({
-            preset: '24-1920-1080',
-            diagonal: CONFIG.DEFAULTS.PRESET_DIAGONAL,
-            width: CONFIG.DEFAULTS.PRESET_RESOLUTION[0],
-            height: CONFIG.DEFAULTS.PRESET_RESOLUTION[1],
-            distance: CONFIG.DEFAULTS.PRESET_DISTANCE,
-            curvature: CONFIG.DEFAULTS.PRESET_CURVATURE,
-            scaling: CONFIG.DEFAULTS.PRESET_SCALING
-        });
+        // Try to load saved state first
+        const savedState = this.loadState();
+        
+        if (savedState && savedState.screens && savedState.screens.length > 0) {
+            // Restore from saved state
+            this.restoreFromState(savedState);
+        } else {
+            // Initialize with default screen if no saved state
+            this.addScreen({
+                preset: '24-1920-1080',
+                diagonal: CONFIG.DEFAULTS.PRESET_DIAGONAL,
+                width: CONFIG.DEFAULTS.PRESET_RESOLUTION[0],
+                height: CONFIG.DEFAULTS.PRESET_RESOLUTION[1],
+                distance: CONFIG.DEFAULTS.PRESET_DISTANCE,
+                curvature: CONFIG.DEFAULTS.PRESET_CURVATURE,
+                scaling: CONFIG.DEFAULTS.PRESET_SCALING
+            });
+        }
         
         // Setup visualizer controls
         document.querySelectorAll('input[name="viewMode"]').forEach(radio => {
             radio.addEventListener('change', (e) => {
                 this.visualizer.setViewMode(e.target.value);
+                this.autoSave(); // Save UI state changes
             });
         });
+        
+        // Restore UI state if available
+        if (savedState && savedState.uiState) {
+            this.restoreUIState(savedState.uiState);
+        }
         
         // Setup add button
         document.getElementById('add-screen').addEventListener('click', () => {
@@ -94,6 +111,7 @@ class ScreenManager {
         this.updateAddButtonVisibility();
         this.updateCloseButtonAvailability();
         this.updateVisualizer();
+        this.autoSave(); // Save state after adding screen
     }
     
     removeScreen(screenId) {
@@ -112,6 +130,7 @@ class ScreenManager {
         this.updateAddButtonVisibility();
         this.updateCloseButtonAvailability();
         this.updateVisualizer();
+        this.autoSave(); // Save state after removing screen
     }
     
     updateScreen(screenId, field, value) {
@@ -127,6 +146,7 @@ class ScreenManager {
         // Update calculations and visualizer
         this.calculateAndRenderScreen(screenId);
         this.updateVisualizer();
+        this.autoSave(); // Save state after updating screen
     }
     
     renderScreen(screenData) {
@@ -443,6 +463,10 @@ class ScreenManager {
     }
     
     resetToDefault() {
+        // Temporarily disable auto-save during reset
+        const originalAutoSave = CONFIG.STORAGE.AUTO_SAVE;
+        CONFIG.STORAGE.AUTO_SAVE = false;
+        
         // Remove all existing screen containers (except template)
         const containers = this.screensContainer.querySelectorAll('.container:not([data-screen-id="template"])');
         containers.forEach(container => container.remove());
@@ -452,7 +476,16 @@ class ScreenManager {
         this.nextId = 1;
         this.usedNumbers.clear();
         
-        // Add default screen
+        // Clear any pending auto-save timeout
+        if (this.autoSaveTimeout) {
+            clearTimeout(this.autoSaveTimeout);
+            this.autoSaveTimeout = null;
+        }
+        
+        // Clear saved state first
+        this.storage.clear();
+        
+        // Add default screen (without triggering auto-save)
         this.addScreen({
             preset: '24-1920-1080',
             diagonal: 24,
@@ -462,6 +495,162 @@ class ScreenManager {
             curvature: null,
             scaling: 100
         });
+        
+        // Reset view mode to default
+        const defaultViewMode = document.querySelector('input[name="viewMode"][value="realSize"]');
+        if (defaultViewMode) {
+            defaultViewMode.checked = true;
+            this.visualizer.setViewMode('realSize');
+        }
+        
+        // Re-enable auto-save
+        CONFIG.STORAGE.AUTO_SAVE = originalAutoSave;
+        
+        console.log('Application reset to default state');
+    }
+
+    /**
+     * Auto-save current state with debouncing to prevent excessive saves
+     */
+    autoSave() {
+        if (!CONFIG.STORAGE.AUTO_SAVE) return;
+        
+        // Clear existing timeout
+        if (this.autoSaveTimeout) {
+            clearTimeout(this.autoSaveTimeout);
+        }
+        
+        // Set new timeout for debounced save
+        this.autoSaveTimeout = setTimeout(() => {
+            this.saveState();
+            this.autoSaveTimeout = null;
+        }, CONFIG.TIMING.AUTO_SAVE_DELAY);
+    }
+
+    /**
+     * Save current application state to localStorage
+     * @returns {boolean} True if save was successful
+     */
+    saveState() {
+        const state = this.getCurrentState();
+        return this.storage.save(state);
+    }
+
+    /**
+     * Load application state from localStorage
+     * @returns {Object|null} Loaded state or null if not found
+     */
+    loadState() {
+        return this.storage.load();
+    }
+
+    /**
+     * Clear saved state from localStorage
+     * @returns {boolean} True if clear was successful
+     */
+    clearState() {
+        return this.storage.clear();
+    }
+
+    /**
+     * Get current application state
+     * @returns {Object} Current state object
+     */
+    getCurrentState() {
+        // Get current view mode
+        const checkedViewMode = document.querySelector('input[name="viewMode"]:checked');
+        const viewMode = checkedViewMode ? checkedViewMode.value : 'realSize';
+        
+        return {
+            screens: this.screens.map(screen => ({
+                id: screen.id,
+                screenNumber: screen.screenNumber,
+                preset: screen.preset,
+                diagonal: screen.diagonal,
+                width: screen.width,
+                height: screen.height,
+                distance: screen.distance,
+                curvature: screen.curvature,
+                scaling: screen.scaling
+            })),
+            uiState: {
+                viewMode: viewMode
+            }
+        };
+    }
+
+    /**
+     * Restore application state from loaded data
+     * @param {Object} state - State object to restore
+     */
+    restoreFromState(state) {
+        // Clear existing screens
+        const containers = this.screensContainer.querySelectorAll('.container:not([data-screen-id="template"])');
+        containers.forEach(container => container.remove());
+        
+        // Reset internal state
+        this.screens = [];
+        this.usedNumbers.clear();
+        
+        // Find the highest ID to continue numbering from
+        let maxId = 0;
+        state.screens.forEach(screen => {
+            if (screen.id > maxId) {
+                maxId = screen.id;
+            }
+        });
+        this.nextId = maxId + 1;
+        
+        // Restore each screen
+        state.screens.forEach(screenData => {
+            // Add to used numbers
+            this.usedNumbers.add(screenData.screenNumber);
+            
+            // Create screen with preserved ID and screenNumber
+            const screen = {
+                id: screenData.id,
+                screenNumber: screenData.screenNumber,
+                preset: screenData.preset || '',
+                diagonal: screenData.diagonal,
+                width: screenData.width,
+                height: screenData.height,
+                distance: screenData.distance,
+                curvature: screenData.curvature,
+                scaling: screenData.scaling
+            };
+            
+            this.screens.push(screen);
+            this.renderScreen(screen);
+        });
+        
+        // Update UI state
+        this.updateAddButtonVisibility();
+        this.updateCloseButtonAvailability();
+        this.updateVisualizer();
+        
+        console.log(`Restored ${state.screens.length} screens from saved state`);
+    }
+
+    /**
+     * Restore UI state (view mode, etc.)
+     * @param {Object} uiState - UI state to restore
+     */
+    restoreUIState(uiState) {
+        if (uiState.viewMode) {
+            const viewModeRadio = document.querySelector(`input[name="viewMode"][value="${uiState.viewMode}"]`);
+            if (viewModeRadio) {
+                viewModeRadio.checked = true;
+                this.visualizer.setViewMode(uiState.viewMode);
+            }
+        }
+    }
+
+    /**
+     * Get storage information for debugging/status
+     * @returns {Object} Storage info
+     */
+    getStorageInfo() {
+        return this.storage.getStorageInfo();
     }
 }
 
