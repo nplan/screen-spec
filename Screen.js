@@ -12,20 +12,43 @@ class Screen {
         
         // Validate inputs
         if (diagonal <= 0) {
-            throw new Error("Diagonal must be a positive number.");
+            throw new Error("Screen diagonal must be greater than 0 inches");
         }
-        if (!Array.isArray(resolution) || resolution.length !== 2 || 
-            !resolution.every(x => Number.isInteger(x) && x > 0)) {
-            throw new Error("Resolution must be an array of two positive integers [width, height].");
+        if (diagonal > 100) {
+            throw new Error("Screen diagonal too large (maximum 100 inches)");
+        }
+        if (!Array.isArray(resolution) || resolution.length !== 2) {
+            throw new Error("Resolution must be an array with width and height [width, height]");
+        }
+        if (!resolution.every(x => Number.isInteger(x) && x > 0)) {
+            throw new Error("Resolution width and height must be positive whole numbers");
+        }
+        if (resolution[0] > 16384 || resolution[1] > 16384) {
+            throw new Error("Resolution values too large (maximum 16384 pixels)");
         }
         if (distance <= 0) {
-            throw new Error("Distance must be a positive number.");
+            throw new Error("Viewing distance must be greater than 0mm");
+        }
+        if (distance < 100) {
+            throw new Error("Viewing distance too close (minimum 100mm)");
+        }
+        if (distance > 3000) {
+            throw new Error("Viewing distance too far (maximum 3000mm)");
         }
         if (curvature !== null && curvature < 0) {
-            throw new Error("Curvature must be non-negative or null.");
+            throw new Error("Curvature radius cannot be negative");
+        }
+        if (curvature !== null && curvature < 500) {
+            throw new Error("Curvature radius too tight (minimum 500mm)");
         }
         if (scaling <= 0) {
-            throw new Error("Scaling must be a positive number.");
+            throw new Error("Scaling factor must be greater than 0");
+        }
+        if (scaling < 0.25) {
+            throw new Error("Scaling factor too small (minimum 25%)");
+        }
+        if (scaling > 5) {
+            throw new Error("Scaling factor too large (maximum 500%)");
         }
 
         this.diagonal = diagonal;
