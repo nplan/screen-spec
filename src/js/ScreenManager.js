@@ -1,3 +1,9 @@
+// Import dependencies
+import { CONFIG } from './config.js';
+import { Screen } from './Screen.js';
+import { ScreenVisualizer } from './ScreenVisualizer.js';
+import { ValidationManager } from './ValidationManager.js';
+
 // Screen Manager - Centralized state and operations
 class ScreenManager {
     constructor() {
@@ -458,3 +464,6 @@ class ScreenManager {
         });
     }
 }
+
+// Export for ES6 modules
+export { ScreenManager };

@@ -193,7 +193,5 @@ if (typeof module !== 'undefined' && module.exports) {
     module.exports = CONFIG;
 }
 
-// Make available globally for script tag usage
-if (typeof window !== 'undefined') {
-    window.CONFIG = CONFIG;
-}
+// Export for ES6 modules
+export { CONFIG };

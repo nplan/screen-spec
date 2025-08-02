@@ -1,3 +1,6 @@
+// Import configuration constants
+import { CONFIG } from './config.js';
+
 // Validation Manager - Centralized input validation and error handling
 class ValidationManager {
     constructor() {
@@ -374,3 +377,6 @@ class ValidationManager {
         return `${errorCount} validation error(s): ${errorList}`;
     }
 }
+
+// Export for ES6 modules
+export { ValidationManager };

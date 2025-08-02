@@ -1,3 +1,6 @@
+// Import configuration constants
+import { CONFIG } from './config.js';
+
 class Screen {
     constructor(diagonal, resolution, distance, curvature = null, scaling = 1) {
         /**
@@ -232,12 +235,5 @@ if (typeof require !== 'undefined' && require.main === module) {
     console.log(screen.toString());
 }
 
-// Export for use in other modules (Node.js style)
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = Screen;
-}
-
-// Export for use in browser (ES6 modules)
-if (typeof window !== 'undefined') {
-    window.screen = Screen;
-}
+// Export for ES6 modules
+export { Screen };

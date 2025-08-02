@@ -1,3 +1,6 @@
+// Import configuration constants
+import { CONFIG } from './config.js';
+
 // Screen Visualizer - Handles the visual comparison of screens
 class ScreenVisualizer {
     constructor(canvasId) {
@@ -350,3 +353,6 @@ class ScreenVisualizer {
                         this.logicalWidth / 2, this.logicalHeight / 2);
     }
 }
+
+// Export for ES6 modules
+export { ScreenVisualizer };
