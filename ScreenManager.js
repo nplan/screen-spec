@@ -257,7 +257,7 @@ class ScreenManager {
         };
 
         // Debounced input handlers for better UX
-        const debouncedUpdatePreset = debounce(updatePreset, 300);
+        const debouncedUpdatePreset = debounce(updatePreset, 100);
         
         // Add immediate validation on blur for better feedback
         const addImmediateValidation = (input, fieldName) => {
@@ -278,7 +278,7 @@ class ScreenManager {
         
         inputs.distance.addEventListener('input', debounce(() => {
             this.updateScreen(screenId, 'distance', parseFloat(inputs.distance.value));
-        }, 300));
+        }, 100));
         
         addImmediateValidation(inputs.distance, 'distance');
         
@@ -289,13 +289,13 @@ class ScreenManager {
             }
             const curvature = value === '' || value === '0' ? null : parseFloat(value);
             this.updateScreen(screenId, 'curvature', curvature);
-        }, 300));
+        }, 100));
         
         addImmediateValidation(inputs.curvature, 'curvature');
         
         inputs.scaling.addEventListener('input', debounce(() => {
             this.updateScreen(screenId, 'scaling', parseFloat(inputs.scaling.value));
-        }, 300));
+        }, 100));
         
         addImmediateValidation(inputs.scaling, 'scaling');
     }

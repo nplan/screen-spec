@@ -275,7 +275,7 @@ class ValidationManager {
         const timeoutId = setTimeout(() => {
             this.updateErrorDisplay(screenId);
             this.debouncedErrorUpdates.delete(screenId);
-        }, 150); // 150ms debounce delay
+        }, 100); // 100ms debounce delay
         
         this.debouncedErrorUpdates.set(screenId, timeoutId);
     }

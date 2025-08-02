@@ -8,6 +8,11 @@ class ScreenVisualizer {
         this.viewDistance = 800;
         this.colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FECA57', '#FF9FF3', '#54A0FF'];
         
+        // Optimization: Cache previous state for change detection
+        this.lastScreensHash = null;
+        this.lastViewMode = null;
+        this.lastCanvasSize = { width: 0, height: 0 };
+        
         this.setupHiDPI();
         this.resizeCanvas();
         
@@ -35,15 +40,69 @@ class ScreenVisualizer {
         
         this.logicalWidth = rect.width;
         this.logicalHeight = rect.height;
+        
+        // Reset cache when canvas size changes
+        this.lastCanvasSize = { width: rect.width, height: rect.height };
+        this.lastScreensHash = null;
+    }
+
+    /**
+     * Generate a hash of the screen data for change detection
+     * @param {Array} screens - Array of screen objects
+     * @returns {string} Hash string representing current screen state
+     */
+    generateScreensHash(screens) {
+        if (!screens || screens.length === 0) {
+            return 'empty';
+        }
+        
+        return screens.map(screen => {
+            return `${screen.diagonal}-${screen.resolution[0]}x${screen.resolution[1]}-${screen.distance}-${screen.curvature}-${screen.scaling}-${screen.screenNumber}`;
+        }).sort().join('|') + `|${this.viewMode}`;
+    }
+
+    /**
+     * Check if screen data has changed since last render
+     * @param {Array} screens - Array of screen objects  
+     * @returns {boolean} True if data has changed
+     */
+    hasScreenDataChanged(screens) {
+        const currentHash = this.generateScreensHash(screens);
+        const sizeChanged = this.lastCanvasSize.width !== this.logicalWidth || 
+                          this.lastCanvasSize.height !== this.logicalHeight;
+        
+        if (this.lastScreensHash !== currentHash || sizeChanged) {
+            this.lastScreensHash = currentHash;
+            this.lastCanvasSize = { width: this.logicalWidth, height: this.logicalHeight };
+            return true;
+        }
+        
+        return false;
     }
 
     updateScreens(screens) {
         this.screens = screens || [];
-        this.render();
+        
+        // Only render if screen data has actually changed
+        if (this.hasScreenDataChanged(this.screens)) {
+            this.render();
+        }
     }
 
     setViewMode(mode) {
-        this.viewMode = mode;
+        if (this.viewMode !== mode) {
+            this.viewMode = mode;
+            this.lastScreensHash = null; // Force re-render on view mode change
+            this.render();
+        }
+    }
+
+    /**
+     * Force a re-render regardless of change detection
+     * Use this method when you need to ensure the canvas is redrawn
+     */
+    forceRender() {
+        this.lastScreensHash = null;
         this.render();
     }
 
