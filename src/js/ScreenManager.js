@@ -2,12 +2,12 @@
 class ScreenManager {
     constructor() {
         this.screens = [];
-        this.visualizer = new ScreenVisualizer('screenCanvas');
+        this.visualizer = new ScreenVisualizer(CONFIG.SELECTORS.CANVAS_ID);
         this.validator = new ValidationManager();
-        this.screensContainer = document.getElementById('screens-container');
-        this.addWrapper = document.getElementById('add-wrapper');
+        this.screensContainer = document.getElementById(CONFIG.SELECTORS.SCREENS_CONTAINER_ID);
+        this.addWrapper = document.getElementById(CONFIG.SELECTORS.ADD_WRAPPER_ID);
         this.nextId = 1;
-        this.colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FECA57', '#FF9FF3', '#54A0FF'];
+        this.colors = CONFIG.COLORS.SCREEN_COLORS;
         this.usedNumbers = new Set(); // Track which screen numbers are in use
         
         this.init();
@@ -17,12 +17,12 @@ class ScreenManager {
         // Initialize with first screen
         this.addScreen({
             preset: '24-1920-1080',
-            diagonal: 24,
-            width: 1920,
-            height: 1080,
-            distance: 600,
-            curvature: null,
-            scaling: 100
+            diagonal: CONFIG.DEFAULTS.PRESET_DIAGONAL,
+            width: CONFIG.DEFAULTS.PRESET_RESOLUTION[0],
+            height: CONFIG.DEFAULTS.PRESET_RESOLUTION[1],
+            distance: CONFIG.DEFAULTS.PRESET_DISTANCE,
+            curvature: CONFIG.DEFAULTS.PRESET_CURVATURE,
+            scaling: CONFIG.DEFAULTS.PRESET_SCALING
         });
         
         // Setup visualizer controls
@@ -37,12 +37,12 @@ class ScreenManager {
             if (this.screens.length < 4) {
                 this.addScreen({
                     preset: '24-1920-1080',
-                    diagonal: 24,
-                    width: 1920,
-                    height: 1080,
-                    distance: 600,
-                    curvature: null,
-                    scaling: 100
+                    diagonal: CONFIG.DEFAULTS.PRESET_DIAGONAL,
+                    width: CONFIG.DEFAULTS.PRESET_RESOLUTION[0],
+                    height: CONFIG.DEFAULTS.PRESET_RESOLUTION[1],
+                    distance: CONFIG.DEFAULTS.PRESET_DISTANCE,
+                    curvature: CONFIG.DEFAULTS.PRESET_CURVATURE,
+                    scaling: CONFIG.DEFAULTS.PRESET_SCALING
                 });
             }
         });
@@ -78,9 +78,9 @@ class ScreenManager {
             diagonal: data.diagonal || null,
             width: data.width || null,
             height: data.height || null,
-            distance: data.distance || 600,
-            curvature: data.curvature || null,
-            scaling: data.scaling || 100
+            distance: data.distance || CONFIG.DEFAULTS.PRESET_DISTANCE,
+            curvature: data.curvature || CONFIG.DEFAULTS.PRESET_CURVATURE,
+            scaling: data.scaling || CONFIG.DEFAULTS.PRESET_SCALING
         };
         
         this.screens.push(screenData);
@@ -131,7 +131,7 @@ class ScreenManager {
     }
     
     createScreenElement(screenData) {
-        const template = this.screensContainer.querySelector('.container');
+        const template = this.screensContainer.querySelector('[data-screen-id="template"]');
         const container = template.cloneNode(true);
         
         container.dataset.screenId = screenData.id;
@@ -141,21 +141,18 @@ class ScreenManager {
         const screenNumber = screenData.screenNumber;
         const color = this.colors[(screenNumber - 1) % this.colors.length];
         
-        const numberElement = container.querySelector('.screen-number');
-        numberElement.innerHTML = `<span class="number-text">${screenNumber}</span>`;
+        const numberElement = container.querySelector(`.${CONFIG.SELECTORS.CLASSES.SCREEN_NUMBER}`);
+        numberElement.innerHTML = `<span class="${CONFIG.SELECTORS.CLASSES.NUMBER_TEXT}">${screenNumber}</span>`;
         numberElement.style.backgroundColor = color;
         numberElement.style.borderColor = color;
         
         // Set no-close class if this is the only screen
         if (this.screens.length === 1) {
-            numberElement.classList.add('no-close');
+            numberElement.classList.add(CONFIG.SELECTORS.CLASSES.NO_CLOSE);
         }
         
         // Update IDs and values
-        const elements = [
-            'preset', 'diagonal', 'width', 'height', 
-            'distance', 'curvature', 'scaling'
-        ];
+        const elements = CONFIG.FIELDS.NAMES;
         
         elements.forEach(name => {
             const input = container.querySelector(`[id^="${name}-"]`);
@@ -163,7 +160,7 @@ class ScreenManager {
             
             if (input) {
                 input.id = `${name}-${screenData.id}`;
-                input.value = screenData[name] || (name === 'scaling' ? '100' : '');
+                input.value = screenData[name] || (name === 'scaling' ? CONFIG.DEFAULTS.PRESET_SCALING : '');
                 if (name === 'curvature' && !screenData[name]) {
                     input.placeholder = 'Flat';
                 }
@@ -359,38 +356,38 @@ class ScreenManager {
     renderEmptyOutputs(nativeOutputs, scaledOutputs, showScaled) {
         nativeOutputs[0].textContent = '-- x --';
         nativeOutputs[1].textContent = '-- x --';
-        nativeOutputs[2].innerHTML = '--<span class="output-unit">PPI</span>';
-        nativeOutputs[3].innerHTML = '--<span class="output-unit">PPD</span>';
+        nativeOutputs[2].innerHTML = `--<span class="${CONFIG.SELECTORS.CLASSES.OUTPUT_UNIT}">PPI</span>`;
+        nativeOutputs[3].innerHTML = `--<span class="${CONFIG.SELECTORS.CLASSES.OUTPUT_UNIT}">PPD</span>`;
         if (showScaled) {
             scaledOutputs[0].textContent = '-- x --';
-            scaledOutputs[1].innerHTML = '--<span class="output-unit">PPI</span>';
-            scaledOutputs[2].innerHTML = '--<span class="output-unit">PPD</span>';
+            scaledOutputs[1].innerHTML = `--<span class="${CONFIG.SELECTORS.CLASSES.OUTPUT_UNIT}">PPI</span>`;
+            scaledOutputs[2].innerHTML = `--<span class="${CONFIG.SELECTORS.CLASSES.OUTPUT_UNIT}">PPD</span>`;
         }
     }
     
     renderCalculatedOutputs(screenCalc, nativeOutputs, scaledOutputs, showScaled) {
-        nativeOutputs[0].innerHTML = `${Math.round(screenCalc.width)} x ${Math.round(screenCalc.height)}<span class="output-unit">mm</span>`;
-        nativeOutputs[1].innerHTML = `${screenCalc.fov_horizontal.toFixed(1)} x ${screenCalc.fov_vertical.toFixed(1)}<span class="output-unit">deg</span>`;
-        nativeOutputs[2].innerHTML = `${screenCalc.ppi}<span class="output-unit">PPI</span>`;
-        nativeOutputs[3].innerHTML = `${screenCalc.ppd.toFixed(1)}<span class="output-unit">PPD</span>`;
+        nativeOutputs[0].innerHTML = `${Math.round(screenCalc.width)} x ${Math.round(screenCalc.height)}<span class="${CONFIG.SELECTORS.CLASSES.OUTPUT_UNIT}">mm</span>`;
+        nativeOutputs[1].innerHTML = `${screenCalc.fov_horizontal.toFixed(1)} x ${screenCalc.fov_vertical.toFixed(1)}<span class="${CONFIG.SELECTORS.CLASSES.OUTPUT_UNIT}">deg</span>`;
+        nativeOutputs[2].innerHTML = `${screenCalc.ppi}<span class="${CONFIG.SELECTORS.CLASSES.OUTPUT_UNIT}">PPI</span>`;
+        nativeOutputs[3].innerHTML = `${screenCalc.ppd.toFixed(1)}<span class="${CONFIG.SELECTORS.CLASSES.OUTPUT_UNIT}">PPD</span>`;
         
         if (showScaled) {
-            scaledOutputs[0].innerHTML = `${screenCalc.resolution_scaled[0]} x ${screenCalc.resolution_scaled[1]}<span class="output-unit">px</span>`;
-            scaledOutputs[1].innerHTML = `${screenCalc.ppi_scaled}<span class="output-unit">PPI</span>`;
-            scaledOutputs[2].innerHTML = `${screenCalc.ppd_scaled.toFixed(1)}<span class="output-unit">PPD</span>`;
+            scaledOutputs[0].innerHTML = `${screenCalc.resolution_scaled[0]} x ${screenCalc.resolution_scaled[1]}<span class="${CONFIG.SELECTORS.CLASSES.OUTPUT_UNIT}">px</span>`;
+            scaledOutputs[1].innerHTML = `${screenCalc.ppi_scaled}<span class="${CONFIG.SELECTORS.CLASSES.OUTPUT_UNIT}">PPI</span>`;
+            scaledOutputs[2].innerHTML = `${screenCalc.ppd_scaled.toFixed(1)}<span class="${CONFIG.SELECTORS.CLASSES.OUTPUT_UNIT}">PPD</span>`;
         }
     }
     
-    renderErrorOutputs(nativeOutputs, scaledOutputs, showScaled, errorMessage = 'Calculation Error') {
-        const errorText = errorMessage.length > 20 ? 'Error' : errorMessage;
+    renderErrorOutputs(nativeOutputs, scaledOutputs, showScaled, errorMessage = CONFIG.MESSAGES.CALCULATION_ERROR) {
+        const errorText = errorMessage.length > 20 ? CONFIG.MESSAGES.CALCULATION_ERROR_SHORT : errorMessage;
         nativeOutputs[0].textContent = errorText;
         nativeOutputs[1].textContent = errorText;
-        nativeOutputs[2].innerHTML = `${errorText}<span class="output-unit">PPI</span>`;
-        nativeOutputs[3].innerHTML = `${errorText}<span class="output-unit">PPD</span>`;
+        nativeOutputs[2].innerHTML = `${errorText}<span class="${CONFIG.SELECTORS.CLASSES.OUTPUT_UNIT}">PPI</span>`;
+        nativeOutputs[3].innerHTML = `${errorText}<span class="${CONFIG.SELECTORS.CLASSES.OUTPUT_UNIT}">PPD</span>`;
         if (showScaled) {
             scaledOutputs[0].textContent = errorText;
-            scaledOutputs[1].innerHTML = `${errorText}<span class="output-unit">PPI</span>`;
-            scaledOutputs[2].innerHTML = `${errorText}<span class="output-unit">PPD</span>`;
+            scaledOutputs[1].innerHTML = `${errorText}<span class="${CONFIG.SELECTORS.CLASSES.OUTPUT_UNIT}">PPI</span>`;
+            scaledOutputs[2].innerHTML = `${errorText}<span class="${CONFIG.SELECTORS.CLASSES.OUTPUT_UNIT}">PPD</span>`;
         }
     }
     

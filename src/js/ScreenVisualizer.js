@@ -4,9 +4,9 @@ class ScreenVisualizer {
         this.canvas = document.getElementById(canvasId);
         this.ctx = this.canvas.getContext('2d');
         this.screens = [];
-        this.viewMode = 'realSize';
-        this.viewDistance = 800;
-        this.colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FECA57', '#FF9FF3', '#54A0FF'];
+        this.viewMode = CONFIG.DEFAULTS.VIEW_MODE;
+        this.viewDistance = CONFIG.DEFAULTS.VIEW_DISTANCE;
+        this.colors = CONFIG.COLORS.SCREEN_COLORS;
         
         // Optimization: Cache previous state for change detection
         this.lastScreensHash = null;
@@ -127,8 +127,8 @@ class ScreenVisualizer {
                 height = screen.height;
             } else {
                 // Use average distance for FOV-based comparison
-                const fovH = screen.fov_horizontal * Math.PI / 180;
-                const fovV = screen.fov_vertical * Math.PI / 180;
+                const fovH = screen.fov_horizontal * CONFIG.PHYSICS.DEGREES_TO_RADIANS;
+                const fovV = screen.fov_vertical * CONFIG.PHYSICS.DEGREES_TO_RADIANS;
                 width = 2 * avgDistance * Math.tan(fovH / 2);
                 height = 2 * avgDistance * Math.tan(fovV / 2);
             }
@@ -137,7 +137,7 @@ class ScreenVisualizer {
             return { width, height, screen };
         });
 
-        const margin = 40;
+        const margin = CONFIG.UI.CANVAS_MARGIN;
         const availableWidth = this.logicalWidth - 2 * margin;
         const availableHeight = this.logicalHeight - 2 * margin;
         const scale = Math.min(availableWidth / maxWidth, availableHeight / maxHeight);
@@ -169,10 +169,10 @@ class ScreenVisualizer {
             const screenNumber = rect.screenNumber;
             const labelText = `${screenNumber} ${rect.screen.diagonal}"`;
             
-            this.ctx.font = 'bold 16px Roboto Mono, monospace';
+            this.ctx.font = `bold ${CONFIG.UI.FONT_SIZE_LABEL_NUMBER}px ${CONFIG.UI.FONT_FAMILY_MONO}`;
             const textMetrics = this.ctx.measureText(labelText);
-            const labelWidth = textMetrics.width + 5; // more padding
-            const labelHeight = 30; // slightly taller
+            const labelWidth = textMetrics.width + CONFIG.UI.LABEL_PADDING; // more padding
+            const labelHeight = CONFIG.UI.LABEL_HEIGHT; // slightly taller
             
             return {
                 index: rect.index,
@@ -206,7 +206,7 @@ class ScreenVisualizer {
                 
                 if (this.labelsOverlap(currentLabel, otherLabel)) {
                     // Move current label to the right of the overlapping label with padding
-                    const padding = 4; // pixels between labels
+                    const padding = CONFIG.UI.LABEL_SPACING; // pixels between labels
                     currentLabel.x = otherLabel.x + otherLabel.width + padding;
                     
                     // If moved label goes beyond screen bounds, try to fit it within screen width
@@ -253,10 +253,10 @@ class ScreenVisualizer {
         const color = this.colors[(screenNumber - 1) % this.colors.length];
         
         this.ctx.strokeStyle = color;
-        this.ctx.lineWidth = 2;
+        this.ctx.lineWidth = CONFIG.UI.SCREEN_STROKE_WIDTH;
         this.ctx.strokeRect(x, y, width, height);
 
-        this.ctx.fillStyle = color + '15';
+        this.ctx.fillStyle = color + CONFIG.COLORS.SCREEN_FILL_OPACITY;
         this.ctx.fillRect(x, y, width, height);
 
         // Use pre-calculated label position
@@ -273,7 +273,7 @@ class ScreenVisualizer {
         const isAtScreenBottom = labelY + labelHeight >= y + height - 1;
         
         // Draw rounded rectangle with selective corners
-        this.drawRoundedRect(labelX, labelY, labelWidth, labelHeight, 4, {
+        this.drawRoundedRect(labelX, labelY, labelWidth, labelHeight, CONFIG.UI.LABEL_BORDER_RADIUS, {
             topLeft: !isAtScreenLeft && !isAtScreenTop,
             topRight: !isAtScreenRight && !isAtScreenTop,
             bottomLeft: !isAtScreenLeft && !isAtScreenBottom,
@@ -289,21 +289,21 @@ class ScreenVisualizer {
         const number = parts[0];
         const inches = parts[1];
         
-        let textX = labelX + 10;
+        let textX = labelX + CONFIG.UI.LABEL_TEXT_PADDING;
         const textY = labelY + labelHeight / 2;
         
         // Draw number (more pronounced)
         this.ctx.fillStyle = 'white';
-        this.ctx.font = 'bold 16px Roboto Mono, monospace';
+        this.ctx.font = `bold ${CONFIG.UI.FONT_SIZE_LABEL_NUMBER}px ${CONFIG.UI.FONT_FAMILY_MONO}`;
         this.ctx.fillText(number, textX, textY);
         
         // Calculate width of number to position inches
         const numberWidth = this.ctx.measureText(number).width;
-        textX += numberWidth + 5; // small gap
+        textX += numberWidth + CONFIG.UI.LABEL_NUMBER_SPACING; // small gap
         
         // Draw inches (less pronounced)
-        this.ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-        this.ctx.font = '14px Roboto Mono, monospace';
+        this.ctx.fillStyle = CONFIG.COLORS.LABEL_TEXT_SECONDARY;
+        this.ctx.font = `${CONFIG.UI.FONT_SIZE_LABEL_INCHES}px ${CONFIG.UI.FONT_FAMILY_MONO}`;
         this.ctx.fillText(inches, textX, textY);
     }
 
@@ -343,10 +343,10 @@ class ScreenVisualizer {
     }
 
     drawNoScreensMessage() {
-        this.ctx.fillStyle = '#999';
-        this.ctx.font = '14px Roboto Mono, monospace';
+        this.ctx.fillStyle = CONFIG.COLORS.TEXT_LIGHT;
+        this.ctx.font = `${CONFIG.UI.FONT_SIZE_NO_SCREENS}px ${CONFIG.UI.FONT_FAMILY_MONO}`;
         this.ctx.textAlign = 'center';
-        this.ctx.fillText('Add screens to see comparison', 
+        this.ctx.fillText(CONFIG.MESSAGES.NO_SCREENS_MESSAGE, 
                         this.logicalWidth / 2, this.logicalHeight / 2);
     }
 }

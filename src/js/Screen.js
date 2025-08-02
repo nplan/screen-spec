@@ -14,8 +14,8 @@ class Screen {
         if (diagonal <= 0) {
             throw new Error("Screen diagonal must be greater than 0 inches");
         }
-        if (diagonal > 100) {
-            throw new Error("Screen diagonal too large (maximum 100 inches)");
+        if (diagonal > CONFIG.LIMITS.DIAGONAL.MAX) {
+            throw new Error(`Screen diagonal too large (maximum ${CONFIG.LIMITS.DIAGONAL.MAX} inches)`);
         }
         if (!Array.isArray(resolution) || resolution.length !== 2) {
             throw new Error("Resolution must be an array with width and height [width, height]");
@@ -23,32 +23,32 @@ class Screen {
         if (!resolution.every(x => Number.isInteger(x) && x > 0)) {
             throw new Error("Resolution width and height must be positive whole numbers");
         }
-        if (resolution[0] > 16384 || resolution[1] > 16384) {
-            throw new Error("Resolution values too large (maximum 16384 pixels)");
+        if (resolution[0] > CONFIG.LIMITS.RESOLUTION.MAX || resolution[1] > CONFIG.LIMITS.RESOLUTION.MAX) {
+            throw new Error(`Resolution values too large (maximum ${CONFIG.LIMITS.RESOLUTION.MAX} pixels)`);
         }
         if (distance <= 0) {
             throw new Error("Viewing distance must be greater than 0mm");
         }
-        if (distance < 100) {
-            throw new Error("Viewing distance too close (minimum 100mm)");
+        if (distance < CONFIG.LIMITS.DISTANCE.MIN) {
+            throw new Error(`Viewing distance too close (minimum ${CONFIG.LIMITS.DISTANCE.MIN}mm)`);
         }
-        if (distance > 3000) {
-            throw new Error("Viewing distance too far (maximum 3000mm)");
+        if (distance > CONFIG.LIMITS.DISTANCE.MAX) {
+            throw new Error(`Viewing distance too far (maximum ${CONFIG.LIMITS.DISTANCE.MAX}mm)`);
         }
         if (curvature !== null && curvature < 0) {
             throw new Error("Curvature radius cannot be negative");
         }
-        if (curvature !== null && curvature < 500) {
-            throw new Error("Curvature radius too tight (minimum 500mm)");
+        if (curvature !== null && curvature < CONFIG.LIMITS.CURVATURE.MIN) {
+            throw new Error(`Curvature radius too tight (minimum ${CONFIG.LIMITS.CURVATURE.MIN}mm)`);
         }
         if (scaling <= 0) {
             throw new Error("Scaling factor must be greater than 0");
         }
-        if (scaling < 0.25) {
-            throw new Error("Scaling factor too small (minimum 25%)");
+        if (scaling < CONFIG.LIMITS.SCALING.MIN / 100) {
+            throw new Error(`Scaling factor too small (minimum ${CONFIG.LIMITS.SCALING.MIN}%)`);
         }
-        if (scaling > 5) {
-            throw new Error("Scaling factor too large (maximum 500%)");
+        if (scaling > CONFIG.LIMITS.SCALING.MAX / 100) {
+            throw new Error(`Scaling factor too large (maximum ${CONFIG.LIMITS.SCALING.MAX}%)`);
         }
 
         this.diagonal = diagonal;
@@ -65,7 +65,7 @@ class Screen {
          * @return {number} width in millimeters.
          */
         const ratio = this.resolution[0] / this.resolution[1];
-        const height = this.diagonal / Math.sqrt(ratio ** 2 + 1) * 25.4;
+        const height = this.diagonal / Math.sqrt(ratio ** 2 + 1) * CONFIG.PHYSICS.INCHES_TO_MM;
         const width = ratio * height;
         return width;
     }
@@ -76,7 +76,7 @@ class Screen {
          * @return {number} height in millimeters.
          */
         const ratio = this.resolution[0] / this.resolution[1];
-        const height = this.diagonal / Math.sqrt(ratio ** 2 + 1) * 25.4;
+        const height = this.diagonal / Math.sqrt(ratio ** 2 + 1) * CONFIG.PHYSICS.INCHES_TO_MM;
         return height;
     }
 
@@ -93,7 +93,7 @@ class Screen {
          * Pixels per inch (PPI).
          * @return {number} ppi
          */
-        const width = this.width / 25.4;
+        const width = this.width / CONFIG.PHYSICS.INCHES_TO_MM;
         const ppi = this.resolution[0] / width;
         return Math.round(ppi);
     }
@@ -111,7 +111,7 @@ class Screen {
          * Size of a single pixel in millimeters.
          * @return {number} Pixel size in millimeters.
          */
-        return 25.4 / this.ppi;
+        return CONFIG.PHYSICS.INCHES_TO_MM / this.ppi;
     }
 
     get fov_horizontal() {
@@ -121,13 +121,13 @@ class Screen {
          */
         let angle;
         if (this.curvature === null) {
-            angle = (180 / Math.PI) * (2 * Math.atan(this.width / 2 / this.distance));
+            angle = CONFIG.PHYSICS.RADIANS_TO_DEGREES * (2 * Math.atan(this.width / 2 / this.distance));
         } else {
             const arc_angle = this.width / this.curvature; // angle of the screen arc in radians
             const arc_width = 2 * this.curvature * Math.sin(arc_angle / 2); // width of the screen arc
             const arc_depth = this.curvature * (1 - Math.cos(arc_angle / 2)); // depth of the screen arc
             const arc_end_dist = this.distance - arc_depth; // distance to the arc center
-            angle = (180 / Math.PI) * (2 * Math.atan(arc_width / 2 / arc_end_dist));
+            angle = CONFIG.PHYSICS.RADIANS_TO_DEGREES * (2 * Math.atan(arc_width / 2 / arc_end_dist));
             angle = angle >= 0 ? angle : 360 + angle; // ensure angle is positive
         }
         return angle;
@@ -139,7 +139,7 @@ class Screen {
          * @return {number} FOV in degrees.
          */
         const height = this.height;
-        const angle = (180 / Math.PI) * (2 * Math.atan(height / 2 / this.distance));
+        const angle = CONFIG.PHYSICS.RADIANS_TO_DEGREES * (2 * Math.atan(height / 2 / this.distance));
         return angle;
     }
 
@@ -149,7 +149,7 @@ class Screen {
          * Calculated using the pixel size and the distance to the screen.
          * @return {number} PPD in pixels per degree.
          */
-        const angle = (180 / Math.PI) * Math.atan(this.pixel_size / this.distance);
+        const angle = CONFIG.PHYSICS.RADIANS_TO_DEGREES * Math.atan(this.pixel_size / this.distance);
         return 1 / angle;
     }
 
@@ -162,14 +162,14 @@ class Screen {
         let angle;
         if (this.curvature === null) {
             const distance_edge = Math.sqrt(this.distance ** 2 + (this.width / 2) ** 2);
-            angle = (180 / Math.PI) * Math.atan(this.pixel_size / distance_edge);
+            angle = CONFIG.PHYSICS.RADIANS_TO_DEGREES * Math.atan(this.pixel_size / distance_edge);
         } else {
             const arc_angle = this.width / this.curvature; // angle of the screen arc in radians
             const arc_width = 2 * this.curvature * Math.sin(arc_angle / 2); // width of the screen arc
             const arc_depth = this.curvature * (1 - Math.cos(arc_angle / 2)); // depth of the screen arc
             const arc_end_dist = this.distance - arc_depth; // distance to the arc center
             const distance_edge = Math.sqrt(arc_end_dist ** 2 + (arc_width / 2) ** 2);
-            angle = (180 / Math.PI) * Math.atan(this.pixel_size / distance_edge);
+            angle = CONFIG.PHYSICS.RADIANS_TO_DEGREES * Math.atan(this.pixel_size / distance_edge);
         }
         return 1 / angle;
     }
@@ -224,8 +224,8 @@ if (typeof require !== 'undefined' && require.main === module) {
     const screen = new Screen(
         45,           // diagonal
         [5120, 2160], // resolution
-        800,          // distance
-        800,          // curvature
+        CONFIG.DEFAULTS.TEST_SCREEN.DISTANCE,          // distance
+        CONFIG.DEFAULTS.TEST_SCREEN.CURVATURE,          // curvature
         1.25          // scaling
     );
 

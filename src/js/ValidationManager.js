@@ -3,43 +3,43 @@ class ValidationManager {
     constructor() {
         this.validationRules = {
             diagonal: {
-                min: 1,
-                max: 100,
+                min: CONFIG.LIMITS.DIAGONAL.MIN,
+                max: CONFIG.LIMITS.DIAGONAL.MAX,
                 type: 'number',
                 required: true,
                 unit: 'inches'
             },
             width: {
-                min: 1,
-                max: 16384,
+                min: CONFIG.LIMITS.RESOLUTION.MIN,
+                max: CONFIG.LIMITS.RESOLUTION.MAX,
                 type: 'integer',
                 required: true,
                 unit: 'pixels'
             },
             height: {
-                min: 1,
-                max: 16384,
+                min: CONFIG.LIMITS.RESOLUTION.MIN,
+                max: CONFIG.LIMITS.RESOLUTION.MAX,
                 type: 'integer',
                 required: true,
                 unit: 'pixels'
             },
             distance: {
-                min: 100,
-                max: 3000,
+                min: CONFIG.LIMITS.DISTANCE.MIN,
+                max: CONFIG.LIMITS.DISTANCE.MAX,
                 type: 'number',
                 required: true,
                 unit: 'mm'
             },
             curvature: {
-                min: 500,
-                max: 10000,
+                min: CONFIG.LIMITS.CURVATURE.MIN,
+                max: CONFIG.LIMITS.CURVATURE.MAX,
                 type: 'number',
                 required: false,
                 unit: 'mm'
             },
             scaling: {
-                min: 25,
-                max: 500,
+                min: CONFIG.LIMITS.SCALING.MIN,
+                max: CONFIG.LIMITS.SCALING.MAX,
                 type: 'number',
                 required: true,
                 unit: '%'
@@ -203,7 +203,7 @@ class ValidationManager {
     estimateScreenWidth(diagonal, width, height) {
         if (!diagonal || !width || !height) return 0;
         const ratio = width / height;
-        const heightMm = diagonal / Math.sqrt(ratio ** 2 + 1) * 25.4;
+        const heightMm = diagonal / Math.sqrt(ratio ** 2 + 1) * CONFIG.PHYSICS.INCHES_TO_MM;
         return ratio * heightMm;
     }
 
@@ -213,15 +213,7 @@ class ValidationManager {
      * @returns {string} Display name
      */
     getFieldDisplayName(fieldName) {
-        const displayNames = {
-            diagonal: 'Diagonal',
-            width: 'Width',
-            height: 'Height',
-            distance: 'Distance',
-            curvature: 'Curvature',
-            scaling: 'Scaling'
-        };
-        return displayNames[fieldName] || fieldName;
+        return CONFIG.FIELDS.VALIDATION_FIELD_NAMES[fieldName] || fieldName;
     }
 
     /**
@@ -254,7 +246,7 @@ class ValidationManager {
 
         const input = container.querySelector(`#${fieldName}-${screenId}`);
         if (input) {
-            input.classList.remove('input-error');
+            input.classList.remove(CONFIG.SELECTORS.CLASSES.INPUT_ERROR);
         }
 
         // Use debounced error display update
@@ -275,7 +267,7 @@ class ValidationManager {
         const timeoutId = setTimeout(() => {
             this.updateErrorDisplay(screenId);
             this.debouncedErrorUpdates.delete(screenId);
-        }, 100); // 100ms debounce delay
+        }, CONFIG.TIMING.DEBOUNCE_DELAY); // debounce delay
         
         this.debouncedErrorUpdates.set(screenId, timeoutId);
     }
