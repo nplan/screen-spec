@@ -21,7 +21,31 @@ const CONFIG = {
         // Transparency levels
         SCREEN_FILL_OPACITY: '15', // Used as hex suffix for screen fill colors
         LABEL_SHADOW: 'rgba(0, 0, 0, 0.7)',
-        LABEL_TEXT_SECONDARY: 'rgba(255, 255, 255, 0.8)'
+        LABEL_TEXT_SECONDARY: 'rgba(255, 255, 255, 0.8)',
+        
+        // Theme Colors
+        LIGHT: {
+            BACKGROUND: '#f8f9fa',
+            SURFACE: '#ffffff',
+            TEXT_PRIMARY: '#333333',
+            TEXT_SECONDARY: '#666666',
+            TEXT_TERTIARY: '#999999',
+            BORDER: '#e9ecef',
+            SHADOW: 'rgba(0, 0, 0, 0.1)',
+            INPUT_BACKGROUND: '#ffffff',
+            OUTPUT_BACKGROUND: '#f8f9fa'
+        },
+        DARK: {
+            BACKGROUND: '#1a1a1a',
+            SURFACE: '#2d2d2d',
+            TEXT_PRIMARY: '#e0e0e0',
+            TEXT_SECONDARY: '#b0b0b0',
+            TEXT_TERTIARY: '#808080',
+            BORDER: '#404040',
+            SHADOW: 'rgba(0, 0, 0, 0.3)',
+            INPUT_BACKGROUND: '#3a3a3a',
+            OUTPUT_BACKGROUND: '#242424'
+        }
     },
 
     // Screen Validation Limits
@@ -161,6 +185,19 @@ const CONFIG = {
             INVALID_INTEGER: 'Please enter a whole number',
             UNREALISTIC_SIZE: 'Screen size appears unrealistic for given dimensions'
         }
+    },
+
+    // Theme Configuration
+    THEME: {
+        THEMES: {
+            LIGHT: 'light',
+            DARK: 'dark',
+            SYSTEM: 'system'
+        },
+        DEFAULT: 'system',
+        STORAGE_KEY: 'screen-spec-theme',
+        CSS_CLASS_PREFIX: 'theme-',
+        DATA_ATTRIBUTE: 'data-theme'
     },
 
     // Element IDs and Selectors

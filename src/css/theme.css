@@ -1,0 +1,217 @@
+/* Theme System - CSS Variables and Dark/Light Theme Support */
+
+/* CSS Custom Properties (Variables) for theming */
+:root {
+    /* Light theme (default) */
+    --bg-primary: #f8f9fa;
+    --bg-secondary: #ffffff;
+    --bg-tertiary: #f8f9fa;
+    --bg-input: #ffffff;
+    
+    --text-primary: #333333;
+    --text-secondary: #666666;
+    --text-tertiary: #999999;
+    
+    --border-primary: #e9ecef;
+    --border-secondary: #dee2e6;
+    
+    --shadow-light: 0 1px 3px rgba(0, 0, 0, 0.1);
+    --shadow-medium: 0 2px 4px rgba(0, 0, 0, 0.1);
+    --shadow-heavy: 0 4px 12px rgba(0, 0, 0, 0.1);
+    
+    /* Theme-aware colors */
+    --error-bg: #f8d7da;
+    --error-border: #f5c6cb;
+    --error-text: #721c24;
+    
+    --success-bg: #d4edda;
+    --success-border: #c3e6cb;
+    --success-text: #155724;
+    
+    /* Button colors */
+    --btn-primary-bg: #007bff;
+    --btn-primary-hover: #0056b3;
+    --btn-danger-bg: #f44336;
+    --btn-danger-hover: #d32f2f;
+}
+
+/* Dark theme overrides */
+.theme-dark {
+    --bg-primary: #1a1a1a;
+    --bg-secondary: #2d2d2d;
+    --bg-tertiary: #242424;
+    --bg-input: #3a3a3a;
+    
+    --text-primary: #e0e0e0;
+    --text-secondary: #b0b0b0;
+    --text-tertiary: #808080;
+    
+    --border-primary: #404040;
+    --border-secondary: #555555;
+    
+    --shadow-light: 0 1px 3px rgba(0, 0, 0, 0.3);
+    --shadow-medium: 0 2px 4px rgba(0, 0, 0, 0.3);
+    --shadow-heavy: 0 4px 12px rgba(0, 0, 0, 0.4);
+    
+    /* Theme-aware colors for dark mode */
+    --error-bg: #4a1e1e;
+    --error-border: #6d2c2c;
+    --error-text: #f8a8a8;
+    
+    --success-bg: #1e3a1e;
+    --success-border: #2c5d2c;
+    --success-text: #a8d8a8;
+    
+    /* Adjust button colors for dark theme */
+    --btn-primary-bg: #0066cc;
+    --btn-primary-hover: #004499;
+    --btn-danger-bg: #cc3333;
+    --btn-danger-hover: #aa2222;
+}
+
+/* Apply CSS variables to existing styles */
+body {
+    background-color: var(--bg-primary) !important;
+    color: var(--text-primary) !important;
+}
+
+.container {
+    background: var(--bg-secondary) !important;
+    box-shadow: var(--shadow-heavy) !important;
+}
+
+/* Input and form elements */
+input[type="number"],
+input[type="text"],
+select {
+    background-color: var(--bg-input) !important;
+    color: var(--text-primary) !important;
+    border-color: var(--border-primary) !important;
+}
+
+input[type="number"]:focus,
+input[type="text"]:focus,
+select:focus {
+    border-color: var(--btn-primary-bg) !important;
+}
+
+/* Labels and text */
+label {
+    color: var(--text-secondary) !important;
+}
+
+.output-section-title {
+    color: var(--text-primary) !important;
+}
+
+.output-label {
+    color: var(--text-secondary) !important;
+}
+
+.output-value {
+    color: var(--text-primary) !important;
+}
+
+.output-unit {
+    color: var(--text-tertiary) !important;
+}
+
+/* Output sections */
+.output-item {
+    background-color: var(--bg-tertiary) !important;
+    border-color: var(--border-primary) !important;
+}
+
+/* Buttons */
+.add-screen {
+    background-color: var(--btn-primary-bg) !important;
+}
+
+.add-screen:hover {
+    background-color: var(--btn-primary-hover) !important;
+}
+
+/* Error styles */
+.input-error input,
+.input-error select {
+    border-color: var(--error-border) !important;
+    background-color: var(--error-bg) !important;
+}
+
+.validation-errors {
+    background-color: var(--error-bg) !important;
+    border-color: var(--error-border) !important;
+    color: var(--error-text) !important;
+}
+
+/* Theme toggle button */
+.theme-toggle {
+    position: absolute;
+    top: 1rem;
+    right: calc(50% - 500px + 4rem);
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+    border: 2px solid var(--border-primary);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    z-index: 1000;
+    box-shadow: var(--shadow-medium);
+    padding: 0;
+    font-family: 'Material Icons';
+    font-size: 20px;
+    display: grid;
+    place-items: center;
+}
+
+.theme-toggle:hover {
+    background-color: var(--btn-primary-bg);
+    color: white;
+    border-color: var(--btn-primary-bg);
+    transform: scale(1.02);
+}
+
+/* Canvas and visualizer - these need special handling for dark theme */
+.theme-dark .screen-visualizer {
+    background-color: var(--bg-secondary);
+}
+
+.theme-dark canvas {
+    filter: brightness(0.9);
+}
+
+/* Responsive adjustments for theme toggle */
+@media (max-width: 1100px) {
+    .theme-toggle {
+        right: 4rem;
+    }
+    
+    .reset-button {
+        right: 1rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .theme-toggle {
+        right: 1rem;
+        top: 4rem;
+    }
+    
+    .reset-button {
+        right: 1rem;
+        top: 1rem;
+    }
+}
+
+/* Ensure theme transitions are smooth */
+* {
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+/* Override transitions for canvas and specific elements that shouldn't transition */
+canvas,
+.screen-visualizer canvas {
+    transition: none !important;
+}

@@ -11,10 +11,14 @@ class ScreenVisualizer {
         this.viewDistance = CONFIG.DEFAULTS.VIEW_DISTANCE;
         this.colors = CONFIG.COLORS.SCREEN_COLORS;
         
+        // Theme awareness
+        this.currentTheme = this.getEffectiveTheme();
+        
         // Optimization: Cache previous state for change detection
         this.lastScreensHash = null;
         this.lastViewMode = null;
         this.lastCanvasSize = { width: 0, height: 0 };
+        this.lastTheme = this.currentTheme;
         
         this.setupHiDPI();
         this.resizeCanvas();
@@ -23,6 +27,9 @@ class ScreenVisualizer {
             this.resizeCanvas();
             this.render();
         });
+        
+        // Listen for theme changes
+        this.setupThemeListener();
     }
 
     setupHiDPI() {
@@ -73,8 +80,9 @@ class ScreenVisualizer {
         const currentHash = this.generateScreensHash(screens);
         const sizeChanged = this.lastCanvasSize.width !== this.logicalWidth || 
                           this.lastCanvasSize.height !== this.logicalHeight;
+        const themeChanged = this.hasThemeChanged();
         
-        if (this.lastScreensHash !== currentHash || sizeChanged) {
+        if (this.lastScreensHash !== currentHash || sizeChanged || themeChanged) {
             this.lastScreensHash = currentHash;
             this.lastCanvasSize = { width: this.logicalWidth, height: this.logicalHeight };
             return true;
@@ -107,6 +115,72 @@ class ScreenVisualizer {
     forceRender() {
         this.lastScreensHash = null;
         this.render();
+    }
+
+    /**
+     * Get the effective theme from the document
+     * @returns {string} Current effective theme ('light' or 'dark')
+     */
+    getEffectiveTheme() {
+        const html = document.documentElement;
+        const themeAttribute = html.getAttribute(CONFIG.THEME.DATA_ATTRIBUTE);
+        return themeAttribute || CONFIG.THEME.THEMES.LIGHT;
+    }
+
+    /**
+     * Setup theme change listener
+     */
+    setupThemeListener() {
+        // Create a MutationObserver to watch for theme changes
+        this.themeObserver = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                if (mutation.type === 'attributes' && 
+                    mutation.attributeName === CONFIG.THEME.DATA_ATTRIBUTE) {
+                    this.handleThemeChange();
+                }
+            });
+        });
+
+        // Start observing theme changes
+        this.themeObserver.observe(document.documentElement, {
+            attributes: true,
+            attributeFilter: [CONFIG.THEME.DATA_ATTRIBUTE]
+        });
+    }
+
+    /**
+     * Handle theme change events
+     */
+    handleThemeChange() {
+        const newTheme = this.getEffectiveTheme();
+        if (this.currentTheme !== newTheme) {
+            this.currentTheme = newTheme;
+            this.lastTheme = newTheme;
+            this.forceRender(); // Force re-render on theme change
+        }
+    }
+
+    /**
+     * Get theme-appropriate colors
+     * @returns {Object} Theme colors object
+     */
+    getThemeColors() {
+        return this.currentTheme === CONFIG.THEME.THEMES.DARK ? 
+            CONFIG.COLORS.DARK : CONFIG.COLORS.LIGHT;
+    }
+
+    /**
+     * Check if we need to re-render due to theme change
+     * @returns {boolean} True if theme has changed
+     */
+    hasThemeChanged() {
+        const currentTheme = this.getEffectiveTheme();
+        if (this.lastTheme !== currentTheme) {
+            this.lastTheme = currentTheme;
+            this.currentTheme = currentTheme;
+            return true;
+        }
+        return false;
     }
 
     render() {
@@ -295,7 +369,11 @@ class ScreenVisualizer {
         let textX = labelX + CONFIG.UI.LABEL_TEXT_PADDING;
         const textY = labelY + labelHeight / 2;
         
-        // Draw number (more pronounced)
+        // Screen labels need high contrast against colored backgrounds
+        // Use white for primary text and semi-transparent white for secondary
+        // This ensures readability regardless of screen color or theme
+        
+        // Draw number (more pronounced) - always white for contrast
         this.ctx.fillStyle = 'white';
         this.ctx.font = `bold ${CONFIG.UI.FONT_SIZE_LABEL_NUMBER}px ${CONFIG.UI.FONT_FAMILY_MONO}`;
         this.ctx.fillText(number, textX, textY);
@@ -304,7 +382,7 @@ class ScreenVisualizer {
         const numberWidth = this.ctx.measureText(number).width;
         textX += numberWidth + CONFIG.UI.LABEL_NUMBER_SPACING; // small gap
         
-        // Draw inches (less pronounced)
+        // Draw inches (less pronounced) - semi-transparent white for contrast
         this.ctx.fillStyle = CONFIG.COLORS.LABEL_TEXT_SECONDARY;
         this.ctx.font = `${CONFIG.UI.FONT_SIZE_LABEL_INCHES}px ${CONFIG.UI.FONT_FAMILY_MONO}`;
         this.ctx.fillText(inches, textX, textY);
@@ -346,7 +424,8 @@ class ScreenVisualizer {
     }
 
     drawNoScreensMessage() {
-        this.ctx.fillStyle = CONFIG.COLORS.TEXT_LIGHT;
+        const themeColors = this.getThemeColors();
+        this.ctx.fillStyle = themeColors.TEXT_TERTIARY;
         this.ctx.font = `${CONFIG.UI.FONT_SIZE_NO_SCREENS}px ${CONFIG.UI.FONT_FAMILY_MONO}`;
         this.ctx.textAlign = 'center';
         this.ctx.fillText(CONFIG.MESSAGES.NO_SCREENS_MESSAGE, 
