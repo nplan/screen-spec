@@ -150,72 +150,7 @@ class ValidationManager {
             validatedData[fieldName] = result.sanitizedValue;
         });
 
-        // Additional cross-field validations
-        const crossValidation = this.validateCrossFields(validatedData);
-        if (!crossValidation.isValid) {
-            Object.assign(errors, crossValidation.errors);
-            isValid = false;
-        }
-
         return { isValid, errors, validatedData };
-    }
-
-    /**
-     * Validate relationships between fields
-     * @param {Object} data - Validated field data
-     * @returns {Object} Cross-validation result
-     */
-    validateCrossFields(data) {
-        const errors = {};
-        let isValid = true;
-
-        // Check aspect ratio reasonableness
-        if (data.width && data.height) {
-            const aspectRatio = data.width / data.height;
-            if (aspectRatio < 0.1 || aspectRatio > 10) {
-                errors.aspectRatio = 'Aspect ratio seems unusual - please check width and height values';
-                isValid = false;
-            }
-        }
-
-        // Check if curvature makes sense for screen size
-        if (data.curvature && data.diagonal) {
-            const screenWidth = this.estimateScreenWidth(data.diagonal, data.width, data.height);
-            if (data.curvature < screenWidth * 0.5) {
-                errors.curvature = 'Curvature radius seems too tight for this screen size';
-                isValid = false;
-            }
-        }
-
-        // Check viewing distance vs screen size
-        if (data.distance && data.diagonal) {
-            const minDistance = data.diagonal * 25.4 * 0.5; // At least 0.5x diagonal in mm
-            const maxDistance = data.diagonal * 25.4 * 5;   // At most 5x diagonal in mm
-            
-            if (data.distance < minDistance) {
-                errors.distance = `Viewing distance seems too close for a ${data.diagonal}" screen`;
-                isValid = false;
-            } else if (data.distance > maxDistance) {
-                errors.distance = `Viewing distance seems too far for a ${data.diagonal}" screen`;
-                isValid = false;
-            }
-        }
-
-        return { isValid, errors };
-    }
-
-    /**
-     * Estimate screen width in mm for validation purposes
-     * @param {number} diagonal - Diagonal in inches
-     * @param {number} width - Width in pixels
-     * @param {number} height - Height in pixels
-     * @returns {number} Estimated width in mm
-     */
-    estimateScreenWidth(diagonal, width, height) {
-        if (!diagonal || !width || !height) return 0;
-        const ratio = width / height;
-        const heightMm = diagonal / Math.sqrt(ratio ** 2 + 1) * CONFIG.PHYSICS.INCHES_TO_MM;
-        return ratio * heightMm;
     }
 
     /**
@@ -310,9 +245,11 @@ class ValidationManager {
         const currentErrors = Array.from(errorList.children).map(child => child.textContent);
         const newErrors = Object.values(validation.errors || {});
         
-        // Only update if errors have actually changed
-        const errorsChanged = currentErrors.length !== newErrors.length || 
-                             !currentErrors.every((error, index) => error === newErrors[index]);
+        // Check if errors have actually changed - simplified logic
+        const errorsChanged = 
+            currentErrors.length !== newErrors.length ||
+            !currentErrors.every((error, index) => error === newErrors[index]) ||
+            !newErrors.every((error, index) => error === currentErrors[index]);
         
         if (!errorsChanged) return; // Prevent unnecessary updates
         
@@ -321,6 +258,9 @@ class ValidationManager {
             if (errorContainer.style.display !== 'none') {
                 errorContainer.style.display = 'none';
             }
+            
+            // IMPORTANT: Clear the error list when hiding to ensure clean state
+            errorList.innerHTML = '';
             
             // Clear accessibility errors for all valid fields
             if (this.accessibilityManager) {

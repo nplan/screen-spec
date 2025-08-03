@@ -210,7 +210,7 @@ class ScreenManager {
         screen[field] = value;
         
         // Update error display for the entire screen
-        this.validator.updateErrorDisplay(screenId);
+        this.validator.debouncedUpdateErrorDisplay(screenId);
         
         // Update calculations and visualizer
         this.calculateAndRenderScreen(screenId);
