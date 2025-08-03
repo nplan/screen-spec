@@ -4,6 +4,7 @@ import { Screen } from './Screen.js';
 import { ScreenVisualizer } from './ScreenVisualizer.js';
 import { ValidationManager } from './ValidationManager.js';
 import { StorageManager } from './StorageManager.js';
+import { URLManager } from './URLManager.js';
 
 // Screen Manager - Centralized state and operations
 class ScreenManager {
@@ -12,34 +13,54 @@ class ScreenManager {
         this.visualizer = new ScreenVisualizer(CONFIG.SELECTORS.CANVAS_ID);
         this.validator = new ValidationManager();
         this.storage = new StorageManager();
+        this.urlManager = new URLManager();
         this.screensContainer = document.getElementById(CONFIG.SELECTORS.SCREENS_CONTAINER_ID);
         this.addWrapper = document.getElementById(CONFIG.SELECTORS.ADD_WRAPPER_ID);
         this.nextId = 1;
         this.colors = CONFIG.COLORS.SCREEN_COLORS;
         this.usedNumbers = new Set(); // Track which screen numbers are in use
         this.autoSaveTimeout = null; // For debounced auto-save
+        this.urlUpdateTimeout = null; // For debounced URL updates
         
         this.init();
     }
     
     init() {
-        // Try to load saved state first
-        const savedState = this.loadState();
+        // Setup URL state change listener first
+        this.urlManager.onStateChange((urlState) => {
+            this.restoreFromState(urlState);
+        });
         
-        if (savedState && savedState.screens && savedState.screens.length > 0) {
-            // Restore from saved state
-            this.restoreFromState(savedState);
+        // Check for URL state first (highest priority)
+        const urlState = this.urlManager.getStateFromURL();
+        let savedState = null;
+        
+        if (urlState && urlState.screens && urlState.screens.length > 0) {
+            // URL state takes precedence - restore from URL
+            this.restoreFromState(urlState);
+            // Also save this state to localStorage for persistence
+            this.saveState();
         } else {
-            // Initialize with default screen if no saved state
-            this.addScreen({
-                preset: '24-1920-1080',
-                diagonal: CONFIG.DEFAULTS.PRESET_DIAGONAL,
-                width: CONFIG.DEFAULTS.PRESET_RESOLUTION[0],
-                height: CONFIG.DEFAULTS.PRESET_RESOLUTION[1],
-                distance: CONFIG.DEFAULTS.PRESET_DISTANCE,
-                curvature: CONFIG.DEFAULTS.PRESET_CURVATURE,
-                scaling: CONFIG.DEFAULTS.PRESET_SCALING
-            });
+            // Try to load from localStorage
+            savedState = this.loadState();
+            
+            if (savedState && savedState.screens && savedState.screens.length > 0) {
+                // Restore from saved state
+                this.restoreFromState(savedState);
+                // Update URL to reflect current state (without adding to history)
+                this.updateURL(true);
+            } else {
+                // Initialize with default screen if no saved state
+                this.addScreen({
+                    preset: '24-1920-1080',
+                    diagonal: CONFIG.DEFAULTS.PRESET_DIAGONAL,
+                    width: CONFIG.DEFAULTS.PRESET_RESOLUTION[0],
+                    height: CONFIG.DEFAULTS.PRESET_RESOLUTION[1],
+                    distance: CONFIG.DEFAULTS.PRESET_DISTANCE,
+                    curvature: CONFIG.DEFAULTS.PRESET_CURVATURE,
+                    scaling: CONFIG.DEFAULTS.PRESET_SCALING
+                });
+            }
         }
         
         // Setup visualizer controls
@@ -47,12 +68,14 @@ class ScreenManager {
             radio.addEventListener('change', (e) => {
                 this.visualizer.setViewMode(e.target.value);
                 this.autoSave(); // Save UI state changes
+                this.updateURL(); // Update URL with new view mode
             });
         });
         
-        // Restore UI state if available
-        if (savedState && savedState.uiState) {
-            this.restoreUIState(savedState.uiState);
+        // Restore UI state if available (URL state takes precedence)
+        const stateToRestore = urlState || savedState;
+        if (stateToRestore && stateToRestore.uiState) {
+            this.restoreUIState(stateToRestore.uiState);
         }
         
         // Setup add button
@@ -73,6 +96,11 @@ class ScreenManager {
         // Setup reset button
         document.getElementById('reset-button').addEventListener('click', () => {
             this.resetToDefault();
+        });
+        
+        // Setup share button
+        document.getElementById('share-button').addEventListener('click', () => {
+            this.shareConfiguration();
         });
         
         // Setup screen number click for removal
@@ -112,6 +140,7 @@ class ScreenManager {
         this.updateCloseButtonAvailability();
         this.updateVisualizer();
         this.autoSave(); // Save state after adding screen
+        this.updateURL(); // Update URL after adding screen
     }
     
     removeScreen(screenId) {
@@ -131,6 +160,7 @@ class ScreenManager {
         this.updateCloseButtonAvailability();
         this.updateVisualizer();
         this.autoSave(); // Save state after removing screen
+        this.updateURL(); // Update URL after removing screen
     }
     
     updateScreen(screenId, field, value) {
@@ -147,6 +177,7 @@ class ScreenManager {
         this.calculateAndRenderScreen(screenId);
         this.updateVisualizer();
         this.autoSave(); // Save state after updating screen
+        this.updateURL(); // Update URL after updating screen
     }
     
     renderScreen(screenData) {
@@ -482,8 +513,15 @@ class ScreenManager {
             this.autoSaveTimeout = null;
         }
         
-        // Clear saved state first
+        // Clear any pending URL update timeout
+        if (this.urlUpdateTimeout) {
+            clearTimeout(this.urlUpdateTimeout);
+            this.urlUpdateTimeout = null;
+        }
+        
+        // Clear saved state and URL first
         this.storage.clear();
+        this.clearURL();
         
         // Add default screen (without triggering auto-save)
         this.addScreen({
@@ -580,6 +618,135 @@ class ScreenManager {
     }
 
     /**
+     * Update URL with current application state (debounced)
+     * @param {boolean} replaceState - Whether to replace current history entry
+     */
+    updateURL(replaceState = false) {
+        // Clear existing timeout
+        if (this.urlUpdateTimeout) {
+            clearTimeout(this.urlUpdateTimeout);
+        }
+        
+        // Set new timeout for debounced URL update
+        this.urlUpdateTimeout = setTimeout(() => {
+            const state = this.getCurrentState();
+            this.urlManager.updateURL(state, replaceState);
+            this.urlUpdateTimeout = null;
+        }, CONFIG.TIMING.URL_UPDATE_DELAY || 300); // Default to 300ms if not defined
+    }
+
+    /**
+     * Get shareable URL for current configuration
+     * @returns {string|null} Shareable URL or null if generation failed
+     */
+    getShareableURL() {
+        const state = this.getCurrentState();
+        return this.urlManager.getShareableURL(state);
+    }
+
+    /**
+     * Clear URL parameters (reset to clean URL)
+     */
+    clearURL() {
+        this.urlManager.clearURL();
+    }
+
+    /**
+     * Get URL state information for debugging
+     * @returns {Object} URL state info
+     */
+    getURLInfo() {
+        return this.urlManager.getURLInfo();
+    }
+
+    /**
+     * Share current configuration by copying URL to clipboard
+     */
+    async shareConfiguration() {
+        try {
+            const shareableURL = this.getShareableURL();
+            if (!shareableURL) {
+                console.error('Failed to generate shareable URL');
+                this.showShareFeedback(false, 'Failed to generate URL');
+                return;
+            }
+            
+            // Try to copy to clipboard
+            if (navigator.clipboard && window.isSecureContext) {
+                await navigator.clipboard.writeText(shareableURL);
+                this.showShareFeedback(true, 'URL copied to clipboard!');
+            } else {
+                // Fallback for non-secure contexts or older browsers
+                this.fallbackCopyToClipboard(shareableURL);
+            }
+        } catch (error) {
+            console.error('Failed to copy URL to clipboard:', error);
+            this.showShareFeedback(false, 'Failed to copy URL');
+        }
+    }
+
+    /**
+     * Fallback method to copy text to clipboard
+     * @param {string} text - Text to copy
+     */
+    fallbackCopyToClipboard(text) {
+        try {
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            textArea.style.position = 'fixed';
+            textArea.style.left = '-999999px';
+            textArea.style.top = '-999999px';
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            
+            const successful = document.execCommand('copy');
+            document.body.removeChild(textArea);
+            
+            if (successful) {
+                this.showShareFeedback(true, 'URL copied to clipboard!');
+            } else {
+                this.showShareFeedback(false, 'Please copy URL manually: ' + text);
+            }
+        } catch (error) {
+            console.error('Fallback copy failed:', error);
+            this.showShareFeedback(false, 'Please copy URL manually: ' + text);
+        }
+    }
+
+    /**
+     * Show visual feedback for share action
+     * @param {boolean} success - Whether the operation was successful
+     * @param {string} message - Message to show (for console/debugging)
+     */
+    showShareFeedback(success, message) {
+        const shareButton = document.getElementById('share-button');
+        if (!shareButton) return;
+        
+        console.log(message);
+        
+        if (success) {
+            // Show success state
+            shareButton.classList.add('success');
+            shareButton.textContent = 'check';
+            
+            // Reset after 2 seconds
+            setTimeout(() => {
+                shareButton.classList.remove('success');
+                shareButton.textContent = 'share';
+            }, 2000);
+        } else {
+            // Show error state briefly
+            const originalText = shareButton.textContent;
+            shareButton.textContent = 'error';
+            
+            setTimeout(() => {
+                shareButton.textContent = originalText;
+            }, 1000);
+        }
+    }
+
+    /**
      * Restore application state from loaded data
      * @param {Object} state - State object to restore
      */
@@ -595,21 +762,34 @@ class ScreenManager {
         // Find the highest ID to continue numbering from
         let maxId = 0;
         state.screens.forEach(screen => {
-            if (screen.id > maxId) {
+            if (screen.id && screen.id > maxId) {
                 maxId = screen.id;
             }
         });
         this.nextId = maxId + 1;
         
         // Restore each screen
-        state.screens.forEach(screenData => {
-            // Add to used numbers
-            this.usedNumbers.add(screenData.screenNumber);
+        state.screens.forEach((screenData, index) => {
+            // Generate ID if not present (URL state might not have IDs)
+            const id = screenData.id || this.nextId++;
             
-            // Create screen with preserved ID and screenNumber
+            // Generate screen number if not present
+            let screenNumber = screenData.screenNumber;
+            if (!screenNumber) {
+                // Find the lowest available screen number
+                screenNumber = 1;
+                while (this.usedNumbers.has(screenNumber)) {
+                    screenNumber++;
+                }
+            }
+            
+            // Add to used numbers
+            this.usedNumbers.add(screenNumber);
+            
+            // Create screen with preserved or generated ID and screenNumber
             const screen = {
-                id: screenData.id,
-                screenNumber: screenData.screenNumber,
+                id: id,
+                screenNumber: screenNumber,
                 preset: screenData.preset || '',
                 diagonal: screenData.diagonal,
                 width: screenData.width,

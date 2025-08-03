@@ -31,6 +31,8 @@
     /* Button colors */
     --btn-primary-bg: #007bff;
     --btn-primary-hover: #0056b3;
+    --btn-success-bg: #28a745;
+    --btn-success-hover: #1e7e34;
     --btn-danger-bg: #f44336;
     --btn-danger-hover: #d32f2f;
 }
@@ -65,6 +67,8 @@
     /* Adjust button colors for dark theme */
     --btn-primary-bg: #0066cc;
     --btn-primary-hover: #004499;
+    --btn-success-bg: #22aa44;
+    --btn-success-hover: #1e7e34;
     --btn-danger-bg: #cc3333;
     --btn-danger-hover: #aa2222;
 }
@@ -146,9 +150,6 @@ label {
 
 /* Theme toggle button */
 .theme-toggle {
-    position: absolute;
-    top: 1rem;
-    right: calc(50% - 500px + 4rem);
     background-color: var(--bg-secondary);
     color: var(--text-primary);
     border: 2px solid var(--border-primary);
@@ -157,7 +158,6 @@ label {
     height: 40px;
     cursor: pointer;
     transition: all 0.2s ease;
-    z-index: 1000;
     box-shadow: var(--shadow-medium);
     padding: 0;
     font-family: 'Material Icons';
@@ -180,29 +180,6 @@ label {
 
 .theme-dark canvas {
     filter: brightness(0.9);
-}
-
-/* Responsive adjustments for theme toggle */
-@media (max-width: 1100px) {
-    .theme-toggle {
-        right: 4rem;
-    }
-    
-    .reset-button {
-        right: 1rem;
-    }
-}
-
-@media (max-width: 768px) {
-    .theme-toggle {
-        right: 1rem;
-        top: 4rem;
-    }
-    
-    .reset-button {
-        right: 1rem;
-        top: 1rem;
-    }
 }
 
 /* Ensure theme transitions are smooth */

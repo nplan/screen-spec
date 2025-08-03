@@ -177,10 +177,11 @@ export class ThemeManager {
             this.cycleTheme();
         });
         
-        // Insert button after the reset button
-        const resetButton = document.querySelector('.reset-button');
-        if (resetButton && resetButton.parentNode) {
-            resetButton.parentNode.insertBefore(toggleButton, resetButton.nextSibling);
+        // Insert button into the header controls container
+        const headerControls = document.querySelector('.header-controls');
+        if (headerControls) {
+            // Add to the beginning of header controls (left side)
+            headerControls.insertBefore(toggleButton, headerControls.firstChild);
         } else {
             // Fallback: add to body
             document.body.appendChild(toggleButton);

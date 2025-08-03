@@ -85,7 +85,8 @@ const CONFIG = {
         DEBOUNCE_DELAY: 100, // milliseconds
         ANIMATION_DURATION: 200, // milliseconds
         TOOLTIP_DELAY: 500, // milliseconds
-        AUTO_SAVE_DELAY: 500 // milliseconds for auto-save debouncing
+        AUTO_SAVE_DELAY: 500, // milliseconds for auto-save debouncing
+        URL_UPDATE_DELAY: 300 // milliseconds for URL update debouncing
     },
 
     // Storage Configuration
