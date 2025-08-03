@@ -12,37 +12,38 @@
     <link rel="stylesheet" href="src/css/theme.css">
 </head>
 <body>
-    <div class="header-controls">
-        <button class="share-button" id="share-button" title="Copy shareable URL">share</button>
-        <button class="reset-button" id="reset-button" title="Reset to default">delete</button>
+    <div class="header-controls" role="toolbar" aria-label="Application controls">
+        <button class="share-button" id="share-button" title="Copy shareable URL" aria-label="Copy shareable URL to clipboard">share</button>
+        <button class="reset-button" id="reset-button" title="Reset to default" aria-label="Reset all screens to default configuration">delete</button>
     </div>
     
-    <h1>screen-spec</h1>
+    <h1 role="banner">screen-spec</h1>
     
     <!-- Add visualizer widget before screens container -->
-    <div class="screen-visualizer">
-        <canvas class="visualizer-canvas" id="screenCanvas"></canvas>
+    <div class="screen-visualizer" role="region" aria-label="Monitor visualization">
+        <canvas class="visualizer-canvas" id="screenCanvas" aria-label="Visual representation of monitor configurations"></canvas>
         <div class="canvas-overlay">
             <div class="view-mode-controls">
-                <div class="mode-toggle">
-                    <input type="radio" id="realSize" name="viewMode" value="realSize" checked>
+                <fieldset class="mode-toggle" role="radiogroup" aria-label="Visualization mode selection">
+                    <legend class="sr-only">Choose visualization mode</legend>
+                    <input type="radio" id="realSize" name="viewMode" value="realSize" checked aria-label="Show monitors at actual size relative to each other">
                     <label for="realSize">Size</label>
-                    <input type="radio" id="fovBased" name="viewMode" value="fovBased">
+                    <input type="radio" id="fovBased" name="viewMode" value="fovBased" aria-label="Show monitors based on field of view from viewing distance">
                     <label for="fovBased">FOV</label>
-                </div>
+                </fieldset>
             </div>
         </div>
     </div>
     
-    <div class="screens-container" id="screens-container">
-        <div class="container" data-screen-id="template" style="display: none;">
-            <div class="screen-number">1</div>
-            <button class="remove-screen" style="display: none;">×</button>
+    <div class="screens-container" id="screens-container" role="main" aria-label="Monitor configurations">
+        <div class="container" data-screen-id="template" style="display: none;" role="region" aria-label="Monitor configuration template">
+            <div class="screen-number" aria-label="Monitor number">1</div>
+            <button class="remove-screen" style="display: none;" aria-label="Remove this monitor">×</button>
             
             <div class="field-wrapper">
                 <label for="preset-template">Preset</label>
                 <div class="input-wrapper">
-                    <select id="preset-template">
+                    <select id="preset-template" aria-label="Monitor preset configuration">
                         <option value="">Custom</option>
                         <option value="24-1920-1080" selected>24" FHD (1920 x 1080)</option>
                         <option value="27-2560-1440">27" QHD (2560 x 1440)</option>
@@ -65,100 +66,101 @@
             </div>
             
             <div class="field-wrapper">
-                <div class="diagonal-scaling">
+                <fieldset class="diagonal-scaling" role="group" aria-label="Size and scaling settings">
                     <div>
                         <label for="diagonal-template">Diagonal</label>
                         <div class="input-wrapper">
-                            <input type="number" id="diagonal-template" min="0" step="1">
+                            <input type="number" id="diagonal-template" min="0" step="1" aria-label="Monitor diagonal size in inches">
                             <span class="unit">in</span>
                         </div>
                     </div>
                     <div>
                         <label for="scaling-template">Scaling</label>
                         <div class="input-wrapper">
-                            <input type="number" id="scaling-template" min="100" step="5" value="100">
+                            <input type="number" id="scaling-template" min="100" step="5" value="100" aria-label="Display scaling percentage">
                             <span class="unit">%</span>
                         </div>
                     </div>
-                </div>
+                </fieldset>
             </div>
             
             <div class="field-wrapper">
                 <label>Resolution</label>
-                <div class="resolution">
+                <fieldset class="resolution" role="group" aria-label="Screen resolution in pixels">
+                    <legend class="sr-only">Screen resolution</legend>
                     <div class="input-wrapper">
-                        <input type="number" id="width-template" min="0">
+                        <input type="number" id="width-template" min="0" aria-label="Screen width in pixels">
                         <span class="unit">px</span>
                     </div>
                     <span>×</span>
                     <div class="input-wrapper">
-                        <input type="number" id="height-template" min="0">
+                        <input type="number" id="height-template" min="0" aria-label="Screen height in pixels">
                         <span class="unit">px</span>
                     </div>
-                </div>
+                </fieldset>
             </div>
             
             <div class="field-wrapper">
-                <div class="resolution">
+                <fieldset class="resolution" role="group" aria-label="Distance and curvature settings">
                     <div>
                         <label for="distance-template">Distance</label>
                         <div class="input-wrapper">
-                            <input type="number" id="distance-template" min="0" step="50" value="600">
+                            <input type="number" id="distance-template" min="0" step="50" value="600" aria-label="Viewing distance in millimeters">
                             <span class="unit">mm</span>
                         </div>
                     </div>
                     <div>
                         <label for="curvature-template">Curvature</label>
                         <div class="input-wrapper">
-                            <input type="number" id="curvature-template" min="0" step="100" placeholder="Flat">
+                            <input type="number" id="curvature-template" min="0" step="100" placeholder="Flat" aria-label="Screen curvature radius in millimeters (leave empty for flat screen)">
                             <span class="unit">mm</span>
                         </div>
                     </div>
-                </div>
+                </fieldset>
             </div>
             
             <!-- Validation errors container -->
-            <div class="validation-errors" id="validation-errors-template" style="display: none;">
+            <div class="validation-errors" id="validation-errors-template" style="display: none;" role="alert" aria-live="polite" aria-label="Validation errors">
                 <div class="error-list" id="error-list-template"></div>
             </div>
             
-            <div class="outputs-section">
+            <div class="outputs-section" role="region" aria-label="Monitor specifications and calculations" aria-live="polite">
                 <div class="output-section-title" style="display: none;">Native</div>
-                <div class="output-item">
-                    <div class="output-line">
+                <div class="output-item" aria-label="Native monitor specifications">
+                    <div class="output-line" aria-label="Physical dimensions">
                         <span class="output-label">Dimensions</span>
                         <span class="output-value">-- x --</span>
                     </div>
                     <div class="output-separator"></div>
-                    <div class="output-line">
+                    <div class="output-line" aria-label="Field of view angles">
                         <span class="output-label">FOV</span>
                         <span class="output-value">-- x --</span>
                     </div>
                     <div class="output-separator"></div>
-                    <div class="output-line">
+                    <div class="output-line" aria-label="Pixels per inch">
                         <span class="output-label">Pixel Density</span>
                         <span class="output-value">--<span class="output-unit">PPI</span></span>
                     </div>
                     <div class="output-separator"></div>
-                    <div class="output-line">
+                    <div class="output-line" aria-label="Pixels per degree of vision">
                         <span class="output-label">Visual Density</span>
                         <span class="output-value">--<span class="output-unit">PPD</span></span>
                     </div>
                 </div>
                 
                 <div class="output-section-title" style="display: none;">Scaled</div>
-                <div class="output-item" style="display: none;">
-                    <div class="output-line">
+                <div class="output-item" style="display: none;" aria-label="Scaled monitor specifications">
+                    <div class="output-line" aria-label="Effective resolution after scaling">
                         <span class="output-label">Resolution</span>
                         <span class="output-value">-- x --</span>
                     </div>
                     <div class="output-separator"></div>
-                    <div class="output-line">
+                    <div class="output-line" aria-label="Effective pixels per inch after scaling">
                         <span class="output-label">Pixel Density</span>
                         <span class="output-value">--<span class="output-unit">PPI</span></span>
                     </div>
                     <div class="output-separator"></div>
-                    <div class="output-line">
+                    <div class="output-line" aria-label="Effective pixels per degree after scaling">
                         <span class="output-label">Visual Density</span>
                         <span class="output-value">--<span class="output-unit">PPD</span></span>
                     </div>
@@ -167,11 +169,11 @@
         </div>
         
         <div class="add-wrapper" id="add-wrapper">
-            <button id="add-screen">+</button>
+            <button id="add-screen" aria-label="Add new monitor configuration">+</button>
         </div>
     </div>
     
-    <footer>
+    <footer role="contentinfo">
         vibecoded
         <br>
         &copy; 2025 Plab

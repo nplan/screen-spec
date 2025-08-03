@@ -1,5 +1,65 @@
 /* Component styles - buttons, forms, inputs, error handling */
 
+/* Accessibility utilities */
+.sr-only {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+}
+
+/* Focus indicators for better accessibility */
+.focus-visible,
+*:focus-visible {
+    outline: 2px solid var(--accent-primary, #007bff) !important;
+    outline-offset: 2px !important;
+    border-radius: 4px;
+}
+
+/* Hide outline for mouse users */
+*:focus:not(.focus-visible) {
+    outline: none;
+}
+
+/* Enhanced focus for interactive elements - but exclude inputs and selects that have their own styles */
+button:focus-visible {
+    outline: 2px solid var(--accent-primary, #007bff) !important;
+    outline-offset: 2px !important;
+    box-shadow: 0 0 0 4px rgba(0, 123, 255, 0.25) !important;
+}
+
+/* For inputs and selects, remove the accessibility outline and let existing focus styles handle appearance */
+.input-wrapper input:focus-visible,
+.input-wrapper select:focus-visible {
+    outline: none !important; /* Remove the accessibility outline */
+    /* Let the existing focus styles handle the appearance */
+}
+
+/* Remove default fieldset borders while keeping accessibility benefits */
+fieldset {
+    border: none;
+    margin: 0;
+    padding: 0;
+}
+
+fieldset legend {
+    /* Keep legends hidden for screen readers but not visible */
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+}
+
 /* Header controls container */
 .header-controls {
     position: absolute;

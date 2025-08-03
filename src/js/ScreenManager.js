@@ -14,6 +14,7 @@ class ScreenManager {
         this.validator = new ValidationManager();
         this.storage = new StorageManager();
         this.urlManager = new URLManager();
+        this.accessibilityManager = null; // Will be set by main.js
         this.screensContainer = document.getElementById(CONFIG.SELECTORS.SCREENS_CONTAINER_ID);
         this.addWrapper = document.getElementById(CONFIG.SELECTORS.ADD_WRAPPER_ID);
         this.nextId = 1;
@@ -23,6 +24,15 @@ class ScreenManager {
         this.urlUpdateTimeout = null; // For debounced URL updates
         
         this.init();
+    }
+    
+    /**
+     * Set accessibility manager reference for integration
+     */
+    setAccessibilityManager(accessibilityManager) {
+        this.accessibilityManager = accessibilityManager;
+        // Also set it for the validation manager
+        this.validator.setAccessibilityManager(accessibilityManager);
     }
     
     init() {
@@ -141,6 +151,11 @@ class ScreenManager {
         this.updateVisualizer();
         this.autoSave(); // Save state after adding screen
         this.updateURL(); // Update URL after adding screen
+        
+        // Announce screen addition to accessibility manager
+        if (this.accessibilityManager) {
+            this.accessibilityManager.announceScreenAdded(screenNumber);
+        }
     }
     
     removeScreen(screenId) {
@@ -148,7 +163,13 @@ class ScreenManager {
         
         const screenData = this.screens.find(screen => screen.id == screenId);
         if (screenData) {
-            this.usedNumbers.delete(screenData.screenNumber);
+            const screenNumber = screenData.screenNumber;
+            this.usedNumbers.delete(screenNumber);
+            
+            // Announce screen removal to accessibility manager
+            if (this.accessibilityManager) {
+                this.accessibilityManager.announceScreenRemoved(screenNumber);
+            }
         }
         
         // Clear any validation errors before removing
@@ -185,6 +206,11 @@ class ScreenManager {
         this.screensContainer.insertBefore(container, this.addWrapper);
         this.attachListeners(container, screenData.id);
         this.calculateAndRenderScreen(screenData.id);
+        
+        // Setup accessibility labels for the new screen
+        if (this.accessibilityManager) {
+            this.accessibilityManager.setupScreenAriaLabels(container, screenData.screenNumber);
+        }
     }
     
     createScreenElement(screenData) {
@@ -544,6 +570,11 @@ class ScreenManager {
         // Re-enable auto-save
         CONFIG.STORAGE.AUTO_SAVE = originalAutoSave;
         
+        // Announce reset to accessibility manager
+        if (this.accessibilityManager) {
+            this.accessibilityManager.announceReset();
+        }
+        
         console.log('Application reset to default state');
     }
 
@@ -675,6 +706,11 @@ class ScreenManager {
             if (navigator.clipboard && window.isSecureContext) {
                 await navigator.clipboard.writeText(shareableURL);
                 this.showShareFeedback(true, 'URL copied to clipboard!');
+                
+                // Announce to accessibility manager
+                if (this.accessibilityManager) {
+                    this.accessibilityManager.announceUrlCopied();
+                }
             } else {
                 // Fallback for non-secure contexts or older browsers
                 this.fallbackCopyToClipboard(shareableURL);
@@ -705,6 +741,11 @@ class ScreenManager {
             
             if (successful) {
                 this.showShareFeedback(true, 'URL copied to clipboard!');
+                
+                // Announce to accessibility manager
+                if (this.accessibilityManager) {
+                    this.accessibilityManager.announceUrlCopied();
+                }
             } else {
                 this.showShareFeedback(false, 'Please copy URL manually: ' + text);
             }

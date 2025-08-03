@@ -4,6 +4,7 @@ import { CONFIG } from './config.js';
 // Validation Manager - Centralized input validation and error handling
 class ValidationManager {
     constructor() {
+        this.accessibilityManager = null; // Will be set by ScreenManager
         this.validationRules = {
             diagonal: {
                 min: CONFIG.LIMITS.DIAGONAL.MIN,
@@ -50,7 +51,14 @@ class ValidationManager {
         };
         
         // Debounced error display update to prevent flickering
-        this.debouncedErrorUpdates = new Map();
+        this.debouncedErrorUpdates = new Map(); // Track pending error updates
+    }
+    
+    /**
+     * Set accessibility manager reference for integration
+     */
+    setAccessibilityManager(accessibilityManager) {
+        this.accessibilityManager = accessibilityManager;
     }
 
     /**
@@ -313,6 +321,14 @@ class ValidationManager {
             if (errorContainer.style.display !== 'none') {
                 errorContainer.style.display = 'none';
             }
+            
+            // Clear accessibility errors for all valid fields
+            if (this.accessibilityManager) {
+                Object.keys(this.validationRules).forEach(field => {
+                    const fieldId = `${field}-${screenId}`;
+                    this.accessibilityManager.updateValidationAria(fieldId, true);
+                });
+            }
         } else {
             // Update errors with smooth transition
             errorList.innerHTML = '';
@@ -321,7 +337,23 @@ class ValidationManager {
                 errorItem.className = 'error-item';
                 errorItem.textContent = error;
                 errorList.appendChild(errorItem);
+                
+                // Update accessibility for the field
+                if (this.accessibilityManager) {
+                    const fieldId = `${field}-${screenId}`;
+                    this.accessibilityManager.updateValidationAria(fieldId, false, error);
+                }
             });
+            
+            // Clear accessibility errors for fields that are now valid
+            if (this.accessibilityManager) {
+                Object.keys(this.validationRules).forEach(field => {
+                    if (!validation.errors[field]) {
+                        const fieldId = `${field}-${screenId}`;
+                        this.accessibilityManager.updateValidationAria(fieldId, true);
+                    }
+                });
+            }
             
             if (errorContainer.style.display === 'none') {
                 errorContainer.style.display = 'block';

@@ -232,6 +232,56 @@ const CONFIG = {
             curvature: 'Curvature Radius',
             scaling: 'Scaling'
         }
+    },
+
+    // Accessibility Configuration
+    ACCESSIBILITY: {
+        ARIA_LABELS: {
+            // Header controls
+            SHARE_BUTTON: 'Copy shareable URL to clipboard',
+            RESET_BUTTON: 'Reset all screens to default configuration',
+            THEME_BUTTON: 'Switch theme',
+            
+            // Form fields
+            PRESET: 'Monitor preset configuration',
+            DIAGONAL: 'Monitor diagonal size in inches',
+            SCALING: 'Display scaling percentage',
+            WIDTH: 'Screen width in pixels',
+            HEIGHT: 'Screen height in pixels',
+            DISTANCE: 'Viewing distance in millimeters',
+            CURVATURE: 'Screen curvature radius in millimeters (leave empty for flat screen)',
+            
+            // View controls
+            CANVAS: 'Visual representation of monitor configurations',
+            VIEW_MODE_GROUP: 'Visualization mode selection',
+            REAL_SIZE: 'Show monitors at actual size relative to each other',
+            FOV_BASED: 'Show monitors based on field of view from viewing distance',
+            
+            // Actions
+            ADD_SCREEN: 'Add new monitor configuration',
+            REMOVE_SCREEN: 'Remove monitor',
+            
+            // Sections
+            MONITOR_CONFIG: 'Monitor configuration',
+            MONITOR_SPECS: 'Monitor specifications and calculations',
+            SIZE_SCALING: 'Size and scaling settings',
+            RESOLUTION_GROUP: 'Screen resolution in pixels',
+            DISTANCE_CURVATURE: 'Distance and curvature settings'
+        },
+        
+        ANNOUNCEMENTS: {
+            SCREEN_ADDED: 'Monitor {number} added',
+            SCREEN_REMOVED: 'Monitor {number} removed',
+            CONFIG_RESET: 'All monitors reset to default configuration',
+            URL_COPIED: 'Shareable URL copied to clipboard',
+            THEME_CHANGED: 'Theme changed to {theme}',
+            SPECS_UPDATED: 'Monitor {number} specifications updated'
+        },
+        
+        TIMING: {
+            ANNOUNCEMENT_DELAY: 100,
+            ANNOUNCEMENT_INTERVAL: 1000
+        }
     }
 };
 

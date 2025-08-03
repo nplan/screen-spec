@@ -8,8 +8,16 @@ export class ThemeManager {
         this.currentTheme = CONFIG.THEME.DEFAULT;
         this.systemMediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
         this.themeChangeCallbacks = [];
+        this.accessibilityManager = null; // Will be set by main.js
         
         this.init();
+    }
+    
+    /**
+     * Set accessibility manager reference for integration
+     */
+    setAccessibilityManager(accessibilityManager) {
+        this.accessibilityManager = accessibilityManager;
     }
 
     /**
@@ -108,6 +116,12 @@ export class ThemeManager {
         this.saveThemePreference();
         this.applyTheme();
         this.updateToggleButton();
+        
+        // Update accessibility
+        if (this.accessibilityManager) {
+            this.accessibilityManager.updateThemeButtonAria(theme);
+            this.accessibilityManager.announceThemeChange(this.getThemeDisplayName(theme));
+        }
     }
 
     /**
@@ -228,6 +242,20 @@ export class ThemeManager {
      */
     isLightTheme() {
         return this.getEffectiveTheme() === CONFIG.THEME.THEMES.LIGHT;
+    }
+
+    /**
+     * Get the display name for a theme
+     * @param {string} theme - Theme identifier
+     * @returns {string} Human-readable theme name
+     */
+    getThemeDisplayName(theme) {
+        const names = {
+            [CONFIG.THEME.THEMES.LIGHT]: 'Light',
+            [CONFIG.THEME.THEMES.DARK]: 'Dark',
+            [CONFIG.THEME.THEMES.SYSTEM]: 'System'
+        };
+        return names[theme] || 'Unknown';
     }
 
     /**
