@@ -16,7 +16,7 @@
 /* Focus indicators for better accessibility */
 .focus-visible,
 *:focus-visible {
-    outline: 2px solid var(--accent-primary, #007bff) !important;
+    outline: 2px solid var(--accent-primary) !important;
     outline-offset: 2px !important;
     border-radius: 4px;
 }
@@ -28,7 +28,7 @@
 
 /* Enhanced focus for interactive elements - but exclude inputs and selects that have their own styles */
 button:focus-visible {
-    outline: 2px solid var(--accent-primary, #007bff) !important;
+    outline: 2px solid var(--accent-primary) !important;
     outline-offset: 2px !important;
     box-shadow: 0 0 0 4px rgba(0, 123, 255, 0.25) !important;
 }
@@ -60,21 +60,11 @@ fieldset legend {
     border: 0 !important;
 }
 
-/* Header controls container */
-.header-controls {
-    position: absolute;
-    top: 1rem;
-    right: calc(50% - 500px + 1rem);
-    display: flex;
-    gap: 0.5rem;
-    z-index: 1000;
-}
-
-/* Share button */
-.share-button {
+/* Common header button style */
+.header-button {
     background-color: var(--bg-secondary);
     color: var(--text-secondary);
-    border: 2px solid var(--border-primary);
+    border: none;
     border-radius: 50%;
     width: 40px;
     height: 40px;
@@ -88,49 +78,32 @@ fieldset legend {
     place-items: center;
 }
 
+.header-button:hover {
+    transform: scale(1.02);
+}
+
+/* Share button - extends header-button */
 .share-button:hover {
     background-color: var(--btn-primary-bg);
     color: white;
-    border-color: var(--btn-primary-bg);
-    transform: scale(1.02);
 }
 
 .share-button.success {
     background-color: var(--btn-success-bg) !important;
     color: white !important;
-    border-color: var(--btn-success-bg) !important;
 }
 
-/* Reset button */
-.reset-button {
-    background-color: var(--bg-secondary);
-    color: var(--text-secondary);
-    border: 2px solid var(--border-primary);
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    box-shadow: var(--shadow-medium);
-    padding: 0;
-    font-family: 'Material Icons';
-    font-size: 20px;
-    display: grid;
-    place-items: center;
-}
-
+/* Reset button - extends header-button */
 .reset-button:hover {
     background-color: var(--btn-danger-bg);
     color: white;
-    border-color: var(--btn-danger-bg);
-    transform: scale(1.02);
 }
 
 /* Screen number badge */
 .screen-number {
     position: absolute;
     top: 0;
-    right: 16px;
+    left: 16px;
     background: white;
     border: 2px solid;
     border-top: none;
@@ -147,59 +120,39 @@ fieldset legend {
     min-width: 32px;
     box-sizing: border-box;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.screen-number:hover {
-    background: #f44336;
-    border-color: #f44336;
-}
-
-.screen-number:hover::after {
-    content: '×';
-    position: absolute;
-    color: white;
-    font-size: 1.2rem;
-    font-weight: bold;
-}
-
-.screen-number:hover .number-text {
-    opacity: 0;
-}
-
-.screen-number.no-close {
     cursor: default;
 }
 
-.screen-number.no-close:hover {
-    background: white;
-    border-color: inherit;
-}
-
-.screen-number.no-close:hover::after {
-    display: none;
-}
-
-.screen-number.no-close:hover .number-text {
-    opacity: 1;
-}
-
-/* Remove screen button (hidden) */
+/* Remove screen button (visible) */
 .remove-screen {
-    display: none !important;
     position: absolute;
     top: 0.25rem;
     right: 0.25rem;
-    background: none;
+    background: transparent;
     border: none;
-    font-size: 1.5rem;
-    color: #aaa;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    font-size: 1rem;
+    color: #666;
     cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    transition: all 0.2s ease;
+    line-height: 1;
+    padding: 0;
+    font-family: 'Material Icons';
 }
 
 .remove-screen:hover {
-    color: #f00;
+    transform: scale(1.2);
+}
+
+/* Hide remove button when only one screen */
+.remove-screen.hidden {
+    display: none;
 }
 
 /* Form fields */
@@ -266,19 +219,103 @@ fieldset legend {
     align-items: center;
 }
 
-/* Add screen button */
+/* Add screen button - now positioned in visualizer controls */
 #add-screen {
-    font-size: 1.5rem;
-    padding: 0.5rem 1rem;
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+    padding: 0;
     background-color: #007bff;
     color: white;
     border: none;
-    border-radius: 8px;
+    border-radius: 50%;
     cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
+    transition: all 0.2s ease;
+    display: grid;
+    place-items: center;
+    font-weight: 300;
+    margin-right: 1rem;
 }
 
 #add-screen:hover {
     background-color: #0056b3;
+    /* transform: scale(1.05); */
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.4);
+}
+
+/* Mode toggle component for visualizer */
+.mode-toggle {
+    position: relative;
+    width: 120px;
+    height: 40px;
+    display: inline-block;
+    background-color: var(--bg-secondary);
+    border-radius: 20px;
+    box-shadow: var(--shadow-medium);
+    transition: all 0.2s ease;
+}
+
+.mode-toggle input[type="radio"] {
+    display: none;
+}
+
+.mode-toggle .slider {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 56px;
+    height: 36px;
+    background-color: var(--text-secondary);
+    border-radius: 18px;
+    transition: left 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    z-index: 0;
+}
+
+.mode-toggle.fov-selected .slider {
+    left: 62px;
+}
+
+.mode-toggle label {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 50%;
+    text-align: center;
+    z-index: 1;
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    user-select: none;
+    transition: color 0.3s ease;
+    white-space: nowrap;
+}
+
+.mode-toggle label:first-of-type {
+    left: 0;
+}
+
+.mode-toggle label:last-of-type {
+    right: 0;
+}
+
+/* Default state: Size is highlighted (white), FOV is not (gray) */
+.mode-toggle label[for="realSize"] {
+    color: white !important;
+}
+
+.mode-toggle label[for="fovBased"] {
+    color: var(--text-secondary) !important;
+}
+
+/* FOV selected state: FOV is highlighted (white), Size is not (gray) */
+.mode-toggle.fov-selected label[for="realSize"] {
+    color: var(--text-secondary) !important;
+}
+
+.mode-toggle.fov-selected label[for="fovBased"] {
+    color: white !important;
 }
 
 /* Error handling and validation */
@@ -342,5 +379,39 @@ fieldset legend {
     to { 
         opacity: 1; 
         transform: translateY(0); 
+    }
+}
+
+/* Responsive styles for add-screen button and mode-toggle */
+@media (max-width: 768px) {
+    .view-mode-controls {
+        justify-content: center;
+    }
+
+    .mode-toggle {
+        justify-content: center;
+    }
+}
+
+@media (max-width: 600px) {
+    #add-screen {
+        width: 36px;
+        height: 36px;
+        font-size: 18px;
+        margin-right: 0.75rem;
+    }
+    
+    .mode-toggle {
+        width: 100px;
+        height: 36px;
+    }
+    
+    .mode-toggle .slider {
+        width: 46px;
+        height: 32px;
+    }
+    
+    .mode-toggle.fov-selected .slider {
+        left: 52px;
     }
 }

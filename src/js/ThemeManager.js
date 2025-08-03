@@ -38,8 +38,8 @@ export class ThemeManager {
             }
         });
         
-        // Create and add theme toggle button
-        this.createThemeToggle();
+        // Set up existing theme toggle button
+        this.setupThemeToggle();
     }
 
     /**
@@ -177,32 +177,23 @@ export class ThemeManager {
     }
 
     /**
-     * Create and add the theme toggle button to the UI
+     * Set up the existing theme toggle button
      */
-    createThemeToggle() {
-        const toggleButton = document.createElement('button');
-        toggleButton.id = 'theme-toggle';
-        toggleButton.className = 'theme-toggle';
-        toggleButton.setAttribute('aria-label', 'Toggle theme');
-        toggleButton.setAttribute('title', 'Toggle theme (Light/Dark/System)');
+    setupThemeToggle() {
+        // Find the existing theme toggle button
+        this.toggleButton = document.getElementById('theme-toggle');
         
-        // Add click handler
-        toggleButton.addEventListener('click', () => {
-            this.cycleTheme();
-        });
-        
-        // Insert button into the header controls container
-        const headerControls = document.querySelector('.header-controls');
-        if (headerControls) {
-            // Add to the beginning of header controls (left side)
-            headerControls.insertBefore(toggleButton, headerControls.firstChild);
+        if (this.toggleButton) {
+            // Add click handler
+            this.toggleButton.addEventListener('click', () => {
+                this.cycleTheme();
+            });
+            
+            // Update button appearance
+            this.updateToggleButton();
         } else {
-            // Fallback: add to body
-            document.body.appendChild(toggleButton);
+            console.warn('Theme toggle button not found in DOM');
         }
-        
-        this.toggleButton = toggleButton;
-        this.updateToggleButton();
     }
 
     /**

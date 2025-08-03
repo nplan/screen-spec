@@ -13,14 +13,46 @@ body {
     align-items: center;
     min-height: 100vh;
     margin: 0;
-    padding: 2rem;
+    padding: 4rem 2rem 1rem 2rem; /* Increased top padding to account for header */
     position: relative;
 }
 
-h1 {
-    font-size: 2.5rem;
-    text-align: center;
-    margin-bottom: 2rem;
+/* Header controls container */
+.header-controls {
+    position: absolute;
+    top: 1rem;
+    left: 50%;
+    transform: translateX(-50%);
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    width: calc(100% - 2rem);
+    max-width: 1000px;
+    z-index: 1000;
+}
+
+/* Desktop layout: position elements in grid */
+.theme-toggle {
+    justify-self: start;
+}
+
+.app-title {
+    justify-self: center;
+    grid-column: 2;
+}
+
+.right-buttons {
+    justify-self: end;
+    grid-column: 3;
+    display: flex;
+    gap: 0.5rem;
+}
+
+.app-title {
+    font-size: 2rem;
+    margin: 0;
+    color: var(--text-primary);
+    font-weight: 400;
 }
 
 .screens-container {
@@ -35,21 +67,13 @@ h1 {
 .container {
     background: white;
     padding: 1rem;
+    padding-top: 2.5rem;
     border-radius: 12px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     max-width: 400px;
     min-width: 280px;
     width: 100%;
     position: relative;
-}
-
-.add-wrapper {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    max-width: 400px;
-    min-width: 320px;
-    width: 100%;
 }
 
 .outputs-section {
@@ -106,8 +130,11 @@ h1 {
 }
 
 footer {
-    margin-top: 3rem;
-    padding: 1rem;
+    margin-top: auto;
+    padding-top: 3rem;
+    padding-bottom: 1rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
     text-align: center;
     color: #666;
     font-size: 0.8rem;
@@ -115,14 +142,72 @@ footer {
 }
 
 /* Responsive design */
-@media (max-width: 600px) {
-    h1 { 
-        font-size: 1.8rem; 
+@media (max-width: 1040px) {
+    .header-controls {
+        width: calc(100% - 2rem);
+        left: 50%;
+        transform: translateX(-50%);
+    }
+    
+    .reset-button {
+        right: 1rem;
     }
 }
 
-@media (max-width: 1040px) {
+@media (max-width: 600px) {
+    body {
+        padding-top: 7rem; /* More space for stacked header with buttons above */
+    }
+    
     .header-controls {
-        right: 1rem;
+        display: flex; /* Override grid layout for mobile */
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+        align-items: center;
+        gap: 0rem 1rem;
+    }
+    
+    /* Reset desktop grid positioning for mobile */
+    .theme-toggle,
+    .app-title,
+    .right-buttons {
+        justify-self: auto;
+        grid-column: auto;
+    }
+    
+    .right-buttons {
+        display: contents; /* Make children appear as direct children of header-controls */
+    }
+    
+    /* Put the title on the first row */
+    .app-title {
+        order: 1;
+        width: 100%;
+        text-align: center;
+        margin-bottom: 0.5rem;
+    }
+    
+    /* Put all buttons on the second row */
+    .theme-toggle {
+        order: 2;
+    }
+    
+    .share-button {
+        order: 3;
+    }
+    
+    .reset-button {
+        order: 4;
+    }
+}
+
+@media (max-width: 600px) {
+    /* .app-title { 
+        font-size: 1.5rem; 
+    } */
+    
+    h1 { 
+        font-size: 1.8rem; 
     }
 }

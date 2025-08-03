@@ -16,7 +16,7 @@ class ScreenManager {
         this.urlManager = new URLManager();
         this.accessibilityManager = null; // Will be set by main.js
         this.screensContainer = document.getElementById(CONFIG.SELECTORS.SCREENS_CONTAINER_ID);
-        this.addWrapper = document.getElementById(CONFIG.SELECTORS.ADD_WRAPPER_ID);
+        this.addButton = document.getElementById(CONFIG.SELECTORS.ADD_SCREEN_BUTTON_ID);
         this.nextId = 1;
         this.colors = CONFIG.COLORS.SCREEN_COLORS;
         this.usedNumbers = new Set(); // Track which screen numbers are in use
@@ -33,6 +33,17 @@ class ScreenManager {
         this.accessibilityManager = accessibilityManager;
         // Also set it for the validation manager
         this.validator.setAccessibilityManager(accessibilityManager);
+    }
+    
+    updatePillToggle(viewMode) {
+        const modeToggle = document.querySelector('.mode-toggle');
+        if (modeToggle) {
+            if (viewMode === 'fovBased') {
+                modeToggle.classList.add('fov-selected');
+            } else {
+                modeToggle.classList.remove('fov-selected');
+            }
+        }
     }
     
     init() {
@@ -77,10 +88,14 @@ class ScreenManager {
         document.querySelectorAll('input[name="viewMode"]').forEach(radio => {
             radio.addEventListener('change', (e) => {
                 this.visualizer.setViewMode(e.target.value);
+                this.updatePillToggle(e.target.value);
                 this.autoSave(); // Save UI state changes
                 this.updateURL(); // Update URL with new view mode
             });
         });
+        
+        // Initialize pill toggle state
+        this.updatePillToggle('realSize');
         
         // Restore UI state if available (URL state takes precedence)
         const stateToRestore = urlState || savedState;
@@ -89,19 +104,22 @@ class ScreenManager {
         }
         
         // Setup add button
-        document.getElementById('add-screen').addEventListener('click', () => {
-            if (this.screens.length < 4) {
-                this.addScreen({
-                    preset: '24-1920-1080',
-                    diagonal: CONFIG.DEFAULTS.PRESET_DIAGONAL,
-                    width: CONFIG.DEFAULTS.PRESET_RESOLUTION[0],
-                    height: CONFIG.DEFAULTS.PRESET_RESOLUTION[1],
-                    distance: CONFIG.DEFAULTS.PRESET_DISTANCE,
-                    curvature: CONFIG.DEFAULTS.PRESET_CURVATURE,
-                    scaling: CONFIG.DEFAULTS.PRESET_SCALING
-                });
-            }
-        });
+        const addButton = document.getElementById('add-screen');
+        if (addButton) {
+            addButton.addEventListener('click', () => {
+                if (this.screens.length < 4) {
+                    this.addScreen({
+                        preset: '24-1920-1080',
+                        diagonal: CONFIG.DEFAULTS.PRESET_DIAGONAL,
+                        width: CONFIG.DEFAULTS.PRESET_RESOLUTION[0],
+                        height: CONFIG.DEFAULTS.PRESET_RESOLUTION[1],
+                        distance: CONFIG.DEFAULTS.PRESET_DISTANCE,
+                        curvature: CONFIG.DEFAULTS.PRESET_CURVATURE,
+                        scaling: CONFIG.DEFAULTS.PRESET_SCALING
+                    });
+                }
+            });
+        }
         
         // Setup reset button
         document.getElementById('reset-button').addEventListener('click', () => {
@@ -113,9 +131,9 @@ class ScreenManager {
             this.shareConfiguration();
         });
         
-        // Setup screen number click for removal
+        // Setup screen removal click for remove button
         this.screensContainer.addEventListener('click', (e) => {
-            if (e.target.classList.contains('screen-number') && !e.target.classList.contains('no-close')) {
+            if (e.target.classList.contains('remove-screen') && !e.target.classList.contains('hidden')) {
                 const screenId = e.target.closest('.container').dataset.screenId;
                 this.removeScreen(screenId);
             }
@@ -203,7 +221,7 @@ class ScreenManager {
     
     renderScreen(screenData) {
         const container = this.createScreenElement(screenData);
-        this.screensContainer.insertBefore(container, this.addWrapper);
+        this.screensContainer.appendChild(container);
         this.attachListeners(container, screenData.id);
         this.calculateAndRenderScreen(screenData.id);
         
@@ -228,11 +246,6 @@ class ScreenManager {
         numberElement.innerHTML = `<span class="${CONFIG.SELECTORS.CLASSES.NUMBER_TEXT}">${screenNumber}</span>`;
         numberElement.style.backgroundColor = color;
         numberElement.style.borderColor = color;
-        
-        // Set no-close class if this is the only screen
-        if (this.screens.length === 1) {
-            numberElement.classList.add(CONFIG.SELECTORS.CLASSES.NO_CLOSE);
-        }
         
         // Update IDs and values
         const elements = CONFIG.FIELDS.NAMES;
@@ -483,19 +496,21 @@ class ScreenManager {
         const hasOnlyOneScreen = containers.length === 1;
         
         containers.forEach((container) => {
-            const numberElement = container.querySelector('.screen-number');
+            const removeButton = container.querySelector('.remove-screen');
             
-            // Add or remove no-close class based on whether this is the last screen
+            // Hide or show remove button based on whether this is the last screen
             if (hasOnlyOneScreen) {
-                numberElement.classList.add('no-close');
+                removeButton.classList.add('hidden');
             } else {
-                numberElement.classList.remove('no-close');
+                removeButton.classList.remove('hidden');
             }
         });
     }
     
     updateAddButtonVisibility() {
-        this.addWrapper.style.display = this.screens.length >= 4 ? 'none' : 'flex';
+        if (this.addButton) {
+            this.addButton.style.display = this.screens.length >= 4 ? 'none' : 'block';
+        }
     }
     
     updateVisualizer() {
@@ -565,6 +580,7 @@ class ScreenManager {
         if (defaultViewMode) {
             defaultViewMode.checked = true;
             this.visualizer.setViewMode('realSize');
+            this.updatePillToggle('realSize');
         }
         
         // Re-enable auto-save
@@ -862,6 +878,7 @@ class ScreenManager {
             if (viewModeRadio) {
                 viewModeRadio.checked = true;
                 this.visualizer.setViewMode(uiState.viewMode);
+                this.updatePillToggle(uiState.viewMode);
             }
         }
     }

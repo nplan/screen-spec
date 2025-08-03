@@ -99,7 +99,7 @@ const CONFIG = {
     // UI Dimensions and Spacing
     UI: {
         // Canvas and Visualizer
-        CANVAS_MARGIN: 40, // pixels around screen visualizations
+        CANVAS_MARGIN: 15, // pixels around screen visualizations
         SCREEN_STROKE_WIDTH: 2,
         
         // Label dimensions and positioning
@@ -205,14 +205,12 @@ const CONFIG = {
     SELECTORS: {
         CANVAS_ID: 'screenCanvas',
         SCREENS_CONTAINER_ID: 'screens-container',
-        ADD_WRAPPER_ID: 'add-wrapper',
         ADD_SCREEN_BUTTON_ID: 'add-screen',
         
         // CSS Classes
         CLASSES: {
             SCREEN_NUMBER: 'screen-number',
             NUMBER_TEXT: 'number-text',
-            NO_CLOSE: 'no-close',
             INPUT_ERROR: 'input-error',
             VALIDATION_ERRORS: 'validation-errors',
             ERROR_LIST: 'error-list',

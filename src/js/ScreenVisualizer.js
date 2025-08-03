@@ -40,19 +40,19 @@ class ScreenVisualizer {
         const container = this.canvas.parentElement;
         const rect = container.getBoundingClientRect();
         
-        this.canvas.style.width = rect.width + 'px';
-        this.canvas.style.height = rect.height + 'px';
+        // Get the actual displayed size of the canvas element
+        const canvasRect = this.canvas.getBoundingClientRect();
         
-        this.canvas.width = rect.width * this.pixelRatio;
-        this.canvas.height = rect.height * this.pixelRatio;
+        this.canvas.width = canvasRect.width * this.pixelRatio;
+        this.canvas.height = canvasRect.height * this.pixelRatio;
         
         this.ctx.scale(this.pixelRatio, this.pixelRatio);
         
-        this.logicalWidth = rect.width;
-        this.logicalHeight = rect.height;
+        this.logicalWidth = canvasRect.width;
+        this.logicalHeight = canvasRect.height;
         
         // Reset cache when canvas size changes
-        this.lastCanvasSize = { width: rect.width, height: rect.height };
+        this.lastCanvasSize = { width: canvasRect.width, height: canvasRect.height };
         this.lastScreensHash = null;
     }
 
