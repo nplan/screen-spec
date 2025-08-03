@@ -30,7 +30,7 @@
 button:focus-visible {
     outline: 2px solid var(--accent-primary) !important;
     outline-offset: 2px !important;
-    box-shadow: 0 0 0 4px rgba(0, 123, 255, 0.25) !important;
+    box-shadow: 0 0 0 4px rgba(var(--accent-primary-rgb, 0, 123, 255), 0.25) !important;
 }
 
 /* For inputs and selects, remove the accessibility outline and let existing focus styles handle appearance */
@@ -78,25 +78,24 @@ fieldset legend {
     place-items: center;
 }
 
-.header-button:hover {
-    transform: scale(1.02);
-}
+/* Only apply hover effects on devices that support hover */
+@media (hover: hover) {
+    /* Share button - extends header-button */
+    .share-button:hover {
+        background-color: var(--btn-primary-bg);
+        color: var(--text-white);
+    }
 
-/* Share button - extends header-button */
-.share-button:hover {
-    background-color: var(--btn-primary-bg);
-    color: white;
+    /* Reset button - extends header-button */
+    .reset-button:hover {
+        background-color: var(--btn-danger-bg);
+        color: var(--text-white);
+    }
 }
 
 .share-button.success {
     background-color: var(--btn-success-bg) !important;
-    color: white !important;
-}
-
-/* Reset button - extends header-button */
-.reset-button:hover {
-    background-color: var(--btn-danger-bg);
-    color: white;
+    color: var(--text-white) !important;
 }
 
 /* Screen number badge */
@@ -104,7 +103,7 @@ fieldset legend {
     position: absolute;
     top: 0;
     left: 16px;
-    background: white;
+    background: var(--bg-secondary);
     border: 2px solid;
     border-top: none;
     border-radius: 0 0 8px 8px;
@@ -115,11 +114,11 @@ fieldset legend {
     justify-content: center;
     font-size: 1rem;
     font-weight: bold;
-    color: white;
+    color: var(--text-white);
     z-index: 10;
     min-width: 32px;
     box-sizing: border-box;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--shadow-medium);
     cursor: default;
 }
 
@@ -134,20 +133,23 @@ fieldset legend {
     width: 30px;
     height: 30px;
     font-size: 1rem;
-    color: #666;
+    color: var(--text-secondary);
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 10;
-    transition: all 0.2s ease;
+    transition: color 0.2s ease;
     line-height: 1;
     padding: 0;
     font-family: 'Material Icons';
 }
 
-.remove-screen:hover {
-    transform: scale(1.2);
+/* Only apply hover effects on devices that support hover */
+@media (hover: hover) {
+    .remove-screen:hover {
+        color: var(--text-primary);
+    }
 }
 
 /* Hide remove button when only one screen */
@@ -164,7 +166,7 @@ fieldset legend {
     display: block;
     font-size: 0.8rem;
     margin-bottom: 0.3rem;
-    color: #555;
+    color: var(--text-secondary);
 }
 
 .input-wrapper {
@@ -175,7 +177,7 @@ fieldset legend {
 .input-wrapper select {
     width: 100%;
     padding: 0.5rem 2.5rem 0.5rem 0.5rem;
-    border: 1px solid #ddd;
+    border: 1px solid var(--border-primary);
     border-radius: 6px;
     font-size: 0.9rem;
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
@@ -184,19 +186,19 @@ fieldset legend {
 .input-wrapper input:focus,
 .input-wrapper select:focus {
     outline: none;
-    border-color: #4ECDC4;
-    box-shadow: 0 0 0 2px rgba(78, 205, 196, 0.2);
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 2px rgba(var(--accent-primary-rgb, 78, 205, 196), 0.2);
 }
 
 .input-wrapper input.input-error,
 .input-wrapper select.input-error {
-    border-color: #dc3545;
-    box-shadow: 0 0 0 2px rgba(220, 53, 69, 0.2);
+    border-color: var(--error-border);
+    box-shadow: 0 0 0 2px rgba(var(--error-border-rgb, 220, 53, 69), 0.2);
 }
 
 .input-wrapper select {
     appearance: none;
-    background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23666%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095.1c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.9z%22%2F%3E%3C%2Fsvg%3E');
+    background-image: var(--select-arrow-svg);
     background-repeat: no-repeat;
     background-position: right 0.5rem center;
     background-size: 0.6rem auto;
@@ -207,7 +209,7 @@ fieldset legend {
     right: 0.75rem;
     top: 50%;
     transform: translateY(-50%);
-    color: #666;
+    color: var(--text-tertiary);
     font-size: 0.85rem;
     pointer-events: none;
 }
@@ -225,23 +227,26 @@ fieldset legend {
     height: 40px;
     font-size: 20px;
     padding: 0;
-    background-color: #007bff;
-    color: white;
+    background-color: var(--btn-primary-bg);
+    color: var(--text-white);
     border: none;
     border-radius: 50%;
     cursor: pointer;
-    box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
+    box-shadow: 0 2px 8px rgba(var(--btn-primary-bg-rgb, 0, 123, 255), 0.3);
     transition: all 0.2s ease;
     display: grid;
     place-items: center;
     font-weight: 300;
     margin-right: 1rem;
+    font-family: 'Material Icons';
 }
 
-#add-screen:hover {
-    background-color: #0056b3;
-    /* transform: scale(1.05); */
-    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.4);
+/* Only apply hover effects on devices that support hover */
+@media (hover: hover) {
+    #add-screen:hover {
+        background-color: var(--btn-primary-hover);
+        box-shadow: 0 4px 12px rgba(var(--btn-primary-bg-rgb, 0, 123, 255), 0.4);
+    }
 }
 
 /* Mode toggle component for visualizer */
@@ -269,7 +274,7 @@ fieldset legend {
     background-color: var(--text-secondary);
     border-radius: 18px;
     transition: left 0.3s ease;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    box-shadow: var(--shadow-medium);
     z-index: 0;
 }
 
@@ -302,7 +307,7 @@ fieldset legend {
 
 /* Default state: Size is highlighted (white), FOV is not (gray) */
 .mode-toggle label[for="realSize"] {
-    color: white !important;
+    color: var(--text-white) !important;
 }
 
 .mode-toggle label[for="fovBased"] {
@@ -315,7 +320,7 @@ fieldset legend {
 }
 
 .mode-toggle.fov-selected label[for="fovBased"] {
-    color: white !important;
+    color: var(--text-white) !important;
 }
 
 /* Error handling and validation */
@@ -328,7 +333,7 @@ fieldset legend {
 }
 
 .error-header {
-    color: #dc3545;
+    color: var(--error-text);
     font-weight: 600;
     font-size: 0.85rem;
     margin-bottom: 0.5rem;
@@ -344,17 +349,17 @@ fieldset legend {
 }
 
 .error-item {
-    background-color: rgba(220, 53, 69, 0.1);
+    background-color: var(--error-bg);
     border: none;
-    border-left: 4px solid #dc3545;
+    border-left: 4px solid var(--error-border);
     border-radius: 4px;
     padding: 0.5rem 0.75rem;
-    color: #721c24;
+    color: var(--error-text);
     font-size: 0.8rem;
     line-height: 1.4;
     font-weight: 500;
     animation: slideIn 0.3s ease-out;
-    box-shadow: 0 1px 3px rgba(220, 53, 69, 0.1);
+    box-shadow: 0 1px 3px rgba(var(--error-border-rgb, 220, 53, 69), 0.1);
     opacity: 0;
     animation-fill-mode: forwards;
 }

@@ -11,11 +11,20 @@
     --text-primary: #333333;
     --text-secondary: #666666;
     --text-tertiary: #999999;
+    --text-white: #ffffff;
     
     --border-primary: #e9ecef;
     --border-secondary: #dee2e6;
     
     --accent-primary: #007bff;
+    
+    /* RGB values for rgba() usage */
+    --accent-primary-rgb: 0, 123, 255;
+    --error-border-rgb: 245, 198, 203;
+    --btn-primary-bg-rgb: 0, 123, 255;
+    
+    /* SVG icons for light theme */
+    --select-arrow-svg: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23666%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095.1c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.9z%22%2F%3E%3C%2Fsvg%3E');
     
     --shadow-light: 0 1px 3px rgba(0, 0, 0, 0.1);
     --shadow-medium: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -49,11 +58,20 @@
     --text-primary: #e0e0e0;
     --text-secondary: #b0b0b0;
     --text-tertiary: #808080;
+    --text-white: #ffffff;
     
     --border-primary: #404040;
     --border-secondary: #555555;
     
     --accent-primary: #4a9eff;
+    
+    /* RGB values for rgba() usage in dark mode */
+    --accent-primary-rgb: 74, 158, 255;
+    --error-border-rgb: 109, 44, 44;
+    --btn-primary-bg-rgb: 0, 102, 204;
+    
+    /* SVG icons for dark theme */
+    --select-arrow-svg: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23b0b0b0%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095.1c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.9z%22%2F%3E%3C%2Fsvg%3E');
     
     --shadow-light: 0 1px 3px rgba(0, 0, 0, 0.3);
     --shadow-medium: 0 2px 4px rgba(0, 0, 0, 0.3);
@@ -153,9 +171,12 @@ label {
 }
 
 /* Theme toggle button - extends header-button */
-.theme-toggle:hover {
-    background-color: var(--btn-primary-bg);
-    color: white;
+/* Only apply hover effects on devices that support hover */
+@media (hover: hover) {
+    .theme-toggle:hover {
+        background-color: var(--btn-primary-bg);
+        color: var(--text-white);
+    }
 }
 
 /* Canvas and visualizer - these need special handling for dark theme */
