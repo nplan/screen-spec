@@ -32,8 +32,11 @@ body {
 }
 
 /* Desktop layout: position elements in grid */
-.theme-toggle {
+.left-buttons {
     justify-self: start;
+    grid-column: 1;
+    display: flex;
+    gap: 0.5rem;
 }
 
 .app-title {
@@ -169,13 +172,14 @@ footer {
     }
     
     /* Reset desktop grid positioning for mobile */
-    .theme-toggle,
+    .left-buttons,
     .app-title,
     .right-buttons {
         justify-self: auto;
         grid-column: auto;
     }
     
+    .left-buttons,
     .right-buttons {
         display: contents; /* Make children appear as direct children of header-controls */
     }
@@ -193,12 +197,16 @@ footer {
         order: 2;
     }
     
-    .share-button {
+    .unit-toggle {
         order: 3;
     }
     
-    .reset-button {
+    .share-button {
         order: 4;
+    }
+    
+    .reset-button {
+        order: 5;
     }
 }
 

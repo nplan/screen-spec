@@ -82,7 +82,7 @@ fieldset legend {
 @media (hover: hover) {
     /* Share button - extends header-button */
     .share-button:hover {
-        background-color: var(--btn-primary-bg);
+        background-color: var(--text-secondary);
         color: var(--text-white);
     }
 
@@ -91,11 +91,31 @@ fieldset legend {
         background-color: var(--btn-danger-bg);
         color: var(--text-white);
     }
+
+    /* Theme button - extends header-button */
+    .theme-toggle:hover {
+        background-color: var(--text-secondary);
+        color: var(--text-white);
+    }
+
+    /* Unit toggle button - extends header-button */
+    .unit-toggle:hover {
+        background-color: var(--text-secondary);
+        color: var(--text-white);
+    }
 }
 
 .share-button.success {
     background-color: var(--btn-success-bg) !important;
     color: var(--text-white) !important;
+}
+
+/* Unit toggle button - override Material Icons font for text display */
+.unit-toggle {
+    font-family: 'Roboto Mono', monospace !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.5px !important;
 }
 
 /* Screen number badge */

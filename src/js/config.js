@@ -52,22 +52,24 @@ const CONFIG = {
     LIMITS: {
         DIAGONAL: {
             MIN: 1,
-            MAX: 100 // inches
+            MAX: 500 // inches
         },
         RESOLUTION: {
             MIN: 1,
-            MAX: 16384 // pixels
+            MAX: 20000 // pixels
         },
         DISTANCE: {
-            MIN: 100,
-            MAX: 3000 // millimeters
+            MIN: 100,  // millimeters (10 cm)
+            MAX: 10000, // millimeters (1000 cm)
+            MIN_CM: 10,  // centimeters
+            MAX_CM: 1000  // centimeters
         },
         CURVATURE: {
             MIN: 500,
             MAX: 10000 // millimeters
         },
         SCALING: {
-            MIN: 25,
+            MIN: 100,
             MAX: 500, // percent
             DEFAULT: 100
         }
@@ -76,6 +78,8 @@ const CONFIG = {
     // Physical Constants
     PHYSICS: {
         INCHES_TO_MM: 25.4,
+        MM_TO_CM: 0.1,
+        CM_TO_MM: 10,
         DEGREES_TO_RADIANS: Math.PI / 180,
         RADIANS_TO_DEGREES: 180 / Math.PI
     },
@@ -158,7 +162,7 @@ const CONFIG = {
         VIEW_MODE: 'realSize',
         PRESET_DIAGONAL: 24, // inches
         PRESET_RESOLUTION: [1920, 1080], // pixels
-        PRESET_DISTANCE: 600, // millimeters
+        PRESET_DISTANCE: 600, // millimeters (60 cm default)
         PRESET_CURVATURE: null, // flat screen
         PRESET_SCALING: 100, // percent
         

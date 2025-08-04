@@ -5,6 +5,7 @@ import { ScreenVisualizer } from './ScreenVisualizer.js';
 import { ValidationManager } from './ValidationManager.js';
 import { StorageManager } from './StorageManager.js';
 import { URLManager } from './URLManager.js';
+import { UnitManager } from './UnitManager.js';
 
 // Screen Manager - Centralized state and operations
 class ScreenManager {
@@ -14,6 +15,7 @@ class ScreenManager {
         this.validator = new ValidationManager();
         this.storage = new StorageManager();
         this.urlManager = new URLManager();
+        this.unitManager = new UnitManager();
         this.accessibilityManager = null; // Will be set by main.js
         this.screensContainer = document.getElementById(CONFIG.SELECTORS.SCREENS_CONTAINER_ID);
         this.addButton = document.getElementById(CONFIG.SELECTORS.ADD_SCREEN_BUTTON_ID);
@@ -23,6 +25,9 @@ class ScreenManager {
         this.autoSaveTimeout = null; // For debounced auto-save
         this.urlUpdateTimeout = null; // For debounced URL updates
         
+        // Set unit manager reference on validator immediately
+        this.validator.setUnitManager(this.unitManager);
+        
         this.init();
     }
     
@@ -31,8 +36,11 @@ class ScreenManager {
      */
     setAccessibilityManager(accessibilityManager) {
         this.accessibilityManager = accessibilityManager;
-        // Also set it for the validation manager
+        // Also set it for the validation manager and unit manager
         this.validator.setAccessibilityManager(accessibilityManager);
+        this.unitManager.setAccessibilityManager(accessibilityManager);
+        // Set unit manager reference on validator for dynamic units
+        this.validator.setUnitManager(this.unitManager);
     }
     
     updatePillToggle(viewMode) {
@@ -102,6 +110,9 @@ class ScreenManager {
         if (stateToRestore && stateToRestore.uiState) {
             this.restoreUIState(stateToRestore.uiState);
         }
+        
+        // Initialize unit manager
+        this.unitManager.init();
         
         // Setup add button
         const addButton = document.getElementById('add-screen');
@@ -256,7 +267,19 @@ class ScreenManager {
             
             if (input) {
                 input.id = `${name}-${screenData.id}`;
-                input.value = screenData[name] || (name === 'scaling' ? CONFIG.DEFAULTS.PRESET_SCALING : '');
+                
+                // Set input values, converting units for distance only
+                let value = screenData[name];
+                if (name === 'distance' && value) {
+                    value = this.unitManager.formatInputValue(value);
+                } else if (name === 'scaling') {
+                    value = value || CONFIG.DEFAULTS.PRESET_SCALING;
+                } else if (value === null || value === undefined) {
+                    value = '';
+                }
+                
+                input.value = value;
+                
                 if (name === 'curvature' && !screenData[name]) {
                     input.placeholder = 'Flat';
                 }
@@ -370,7 +393,9 @@ class ScreenManager {
         addImmediateValidation(inputs.height, 'height');
         
         inputs.distance.addEventListener('input', debounce(() => {
-            this.updateScreen(screenId, 'distance', parseFloat(inputs.distance.value));
+            const inputValue = parseFloat(inputs.distance.value);
+            const valueInMm = this.unitManager.convertToMm(inputValue);
+            this.updateScreen(screenId, 'distance', valueInMm);
         }, 100));
         
         addImmediateValidation(inputs.distance, 'distance');
@@ -462,7 +487,12 @@ class ScreenManager {
     }
     
     renderCalculatedOutputs(screenCalc, nativeOutputs, scaledOutputs, showScaled) {
-        nativeOutputs[0].innerHTML = `${Math.round(screenCalc.width)} x ${Math.round(screenCalc.height)}<span class="${CONFIG.SELECTORS.CLASSES.OUTPUT_UNIT}">mm</span>`;
+        // Format dimensions using unit manager
+        const widthFormatted = this.unitManager.formatValue(screenCalc.width);
+        const heightFormatted = this.unitManager.formatValue(screenCalc.height);
+        const unitLabel = this.unitManager.getUnitLabel();
+        
+        nativeOutputs[0].innerHTML = `${widthFormatted} x ${heightFormatted}<span class="${CONFIG.SELECTORS.CLASSES.OUTPUT_UNIT}">${unitLabel}</span>`;
         nativeOutputs[1].innerHTML = `${screenCalc.fov_horizontal.toFixed(1)} x ${screenCalc.fov_vertical.toFixed(1)}<span class="${CONFIG.SELECTORS.CLASSES.OUTPUT_UNIT}">deg</span>`;
         nativeOutputs[2].innerHTML = `${screenCalc.ppi}<span class="${CONFIG.SELECTORS.CLASSES.OUTPUT_UNIT}">PPI</span>`;
         nativeOutputs[3].innerHTML = `${screenCalc.ppd.toFixed(1)}<span class="${CONFIG.SELECTORS.CLASSES.OUTPUT_UNIT}">PPD</span>`;
@@ -889,6 +919,16 @@ class ScreenManager {
      */
     getStorageInfo() {
         return this.storage.getStorageInfo();
+    }
+
+    /**
+     * Recalculate and re-render all screens (used when units change)
+     */
+    recalculateAllScreens() {
+        this.screens.forEach(screen => {
+            this.calculateAndRenderScreen(screen.id);
+        });
+        this.updateVisualizer();
     }
 }
 

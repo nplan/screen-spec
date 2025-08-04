@@ -5,6 +5,7 @@ import { CONFIG } from './config.js';
 class ValidationManager {
     constructor() {
         this.accessibilityManager = null; // Will be set by ScreenManager
+        this.unitManager = null; // Will be set by ScreenManager
         this.validationRules = {
             diagonal: {
                 min: CONFIG.LIMITS.DIAGONAL.MIN,
@@ -32,7 +33,8 @@ class ValidationManager {
                 max: CONFIG.LIMITS.DISTANCE.MAX,
                 type: 'number',
                 required: true,
-                unit: 'mm'
+                unit: 'mm', // Internal unit - will be converted for display
+                unitDisplay: () => this.unitManager ? this.unitManager.getUnitLabel() : 'mm'
             },
             curvature: {
                 min: CONFIG.LIMITS.CURVATURE.MIN,
@@ -59,6 +61,13 @@ class ValidationManager {
      */
     setAccessibilityManager(accessibilityManager) {
         this.accessibilityManager = accessibilityManager;
+    }
+
+    /**
+     * Set unit manager reference for dynamic units
+     */
+    setUnitManager(unitManager) {
+        this.unitManager = unitManager;
     }
 
     /**
@@ -111,18 +120,22 @@ class ValidationManager {
 
         // Check minimum value
         if (numValue < rule.min) {
+            const displayUnit = this.getDisplayUnit(fieldName, rule);
+            const displayMin = this.convertValueForDisplay(fieldName, rule.min);
             return { 
                 isValid: false, 
-                error: `${this.getFieldDisplayName(fieldName)} must be at least ${rule.min} ${rule.unit}`, 
+                error: `${this.getFieldDisplayName(fieldName)} must be at least ${displayMin} ${displayUnit}`, 
                 sanitizedValue: null 
             };
         }
 
         // Check maximum value
         if (numValue > rule.max) {
+            const displayUnit = this.getDisplayUnit(fieldName, rule);
+            const displayMax = this.convertValueForDisplay(fieldName, rule.max);
             return { 
                 isValid: false, 
-                error: `${this.getFieldDisplayName(fieldName)} must be no more than ${rule.max} ${rule.unit}`, 
+                error: `${this.getFieldDisplayName(fieldName)} must be no more than ${displayMax} ${displayUnit}`, 
                 sanitizedValue: null 
             };
         }
@@ -160,6 +173,36 @@ class ValidationManager {
      */
     getFieldDisplayName(fieldName) {
         return CONFIG.FIELDS.VALIDATION_FIELD_NAMES[fieldName] || fieldName;
+    }
+
+    /**
+     * Get display unit for a field (handles dynamic units)
+     * @param {string} fieldName - Field name
+     * @param {Object} rule - Validation rule
+     * @returns {string} Display unit
+     */
+    getDisplayUnit(fieldName, rule) {
+        if (fieldName === 'distance' && rule.unitDisplay && this.unitManager) {
+            return rule.unitDisplay();
+        }
+        return rule.unit;
+    }
+
+    /**
+     * Convert value for display (handles distance unit conversion)
+     * @param {string} fieldName - Field name
+     * @param {number} value - Value in internal units (mm for distance)
+     * @returns {string} Formatted value for display
+     */
+    convertValueForDisplay(fieldName, value) {
+        if (fieldName === 'distance' && this.unitManager) {
+            if (this.unitManager.getCurrentUnit() === 'cm') {
+                return Math.round(value * CONFIG.PHYSICS.MM_TO_CM).toString();
+            } else if (this.unitManager.getCurrentUnit() === 'in') {
+                return Math.round(value / CONFIG.PHYSICS.INCHES_TO_MM).toString();
+            }
+        }
+        return value.toString();
     }
 
     /**

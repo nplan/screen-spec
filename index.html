@@ -14,7 +14,10 @@
 </head>
 <body>
     <div class="header-controls" role="toolbar" aria-label="Application controls">
-        <button class="header-button theme-toggle" id="theme-toggle" title="Toggle theme (Light/Dark/System)" aria-label="Toggle theme">brightness_auto</button>
+        <div class="left-buttons">
+            <button class="header-button theme-toggle" id="theme-toggle" title="Toggle theme (Light/Dark/System)" aria-label="Toggle theme">brightness_auto</button>
+            <button class="header-button unit-toggle" id="unit-toggle" title="Toggle distance units (cm/inches)" aria-label="Toggle distance units between centimeters and inches">cm</button>
+        </div>
         <h1 class="app-title" role="banner">screenspecs</h1>
         <div class="right-buttons">
             <button class="header-button share-button" id="share-button" title="Copy shareable URL" aria-label="Copy shareable URL to clipboard">share</button>
@@ -109,8 +112,8 @@
                     <div>
                         <label for="distance-template">Distance</label>
                         <div class="input-wrapper">
-                            <input type="number" id="distance-template" min="0" step="50" value="600" aria-label="Viewing distance in millimeters">
-                            <span class="unit">mm</span>
+                            <input type="number" id="distance-template" min="0" step="1" value="60" aria-label="Viewing distance in centimeters">
+                            <span class="unit">cm</span>
                         </div>
                     </div>
                     <div>

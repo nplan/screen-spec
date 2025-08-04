@@ -125,7 +125,7 @@ export class AccessibilityManager {
         this.setAriaLabel(`#scaling-${screenId}`, 'Display scaling percentage');
         this.setAriaLabel(`#width-${screenId}`, 'Screen width in pixels');
         this.setAriaLabel(`#height-${screenId}`, 'Screen height in pixels');
-        this.setAriaLabel(`#distance-${screenId}`, 'Viewing distance in millimeters');
+        this.setAriaLabel(`#distance-${screenId}`, 'Viewing distance');
         this.setAriaLabel(`#curvature-${screenId}`, 'Screen curvature radius in millimeters (leave empty for flat screen)');
 
         // Group related fields
@@ -241,6 +241,13 @@ export class AccessibilityManager {
      */
     announceThemeChange(themeName) {
         this.announce(`Theme changed to ${themeName}`);
+    }
+
+    /**
+     * Announce unit change
+     */
+    announceUnitChange(message) {
+        this.announce(message);
     }
 
     /**

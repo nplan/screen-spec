@@ -170,14 +170,7 @@ label {
     color: var(--error-text) !important;
 }
 
-/* Theme toggle button - extends header-button */
-/* Only apply hover effects on devices that support hover */
-@media (hover: hover) {
-    .theme-toggle:hover {
-        background-color: var(--btn-primary-bg);
-        color: var(--text-white);
-    }
-}
+
 
 /* Canvas and visualizer - these need special handling for dark theme */
 
