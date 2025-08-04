@@ -825,7 +825,7 @@ class ScreenManager {
             // Reset after 2 seconds
             setTimeout(() => {
                 shareButton.classList.remove('success');
-                shareButton.textContent = 'share';
+                shareButton.textContent = 'link';
             }, 2000);
         } else {
             // Show error state briefly
