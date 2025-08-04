@@ -142,6 +142,11 @@ class ScreenManager {
             this.shareConfiguration();
         });
         
+        // Setup info button
+        document.getElementById('info-button').addEventListener('click', () => {
+            this.showInfoModal();
+        });
+        
         // Setup screen removal click for remove button
         this.screensContainer.addEventListener('click', (e) => {
             if (e.target.classList.contains('remove-screen') && !e.target.classList.contains('hidden')) {
@@ -830,6 +835,70 @@ class ScreenManager {
             setTimeout(() => {
                 shareButton.textContent = originalText;
             }, 1000);
+        }
+    }
+
+    /**
+     * Show the info modal with explanations
+     */
+    showInfoModal() {
+        const modal = document.getElementById('info-modal');
+        if (modal) {
+            modal.style.display = 'flex';
+            
+            // Focus the modal for accessibility
+            const modalTitle = document.getElementById('info-modal-title');
+            if (modalTitle) {
+                modalTitle.focus();
+            }
+            
+            // Setup close button
+            const closeButton = document.getElementById('info-modal-close');
+            if (closeButton) {
+                closeButton.onclick = () => this.hideInfoModal();
+            }
+            
+            // Setup overlay click to close
+            modal.onclick = (e) => {
+                if (e.target === modal) {
+                    this.hideInfoModal();
+                }
+            };
+            
+            // Setup escape key to close
+            const handleEscape = (e) => {
+                if (e.key === 'Escape') {
+                    this.hideInfoModal();
+                    document.removeEventListener('keydown', handleEscape);
+                }
+            };
+            document.addEventListener('keydown', handleEscape);
+            
+            // Announce to accessibility manager
+            if (this.accessibilityManager) {
+                this.accessibilityManager.announce('Information modal opened');
+            }
+        }
+    }
+
+    /**
+     * Hide the info modal
+     */
+    hideInfoModal() {
+        const modal = document.getElementById('info-modal');
+        if (modal) {
+            modal.style.display = 'none';
+            
+            // Return focus to the info button
+            const infoButton = document.getElementById('info-button');
+            if (infoButton) {
+                infoButton.focus();
+            }
+            
+            // Announce to accessibility manager
+            if (this.accessibilityManager) {
+                this.accessibilityManager.announce('Information modal closed');
+            }
         }
     }
 

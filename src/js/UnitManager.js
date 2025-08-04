@@ -118,11 +118,11 @@ export class UnitManager {
         }
         const convertedValue = this.convertFromMm(mmValue);
         if (this.currentUnit === 'in') {
-            return Math.round(convertedValue);
+            return convertedValue.toFixed(1);
         } else if (this.currentUnit === 'cm') {
-            return Math.round(convertedValue);
+            return convertedValue.toFixed(1);
         }
-        return Math.round(convertedValue);
+        return convertedValue.toFixed(1);
     }
 
     /**

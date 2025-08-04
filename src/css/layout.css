@@ -201,12 +201,16 @@ footer {
         order: 3;
     }
     
-    .share-button {
+    .info-button {
         order: 4;
     }
     
-    .reset-button {
+    .share-button {
         order: 5;
+    }
+    
+    .reset-button {
+        order: 6;
     }
 }
 

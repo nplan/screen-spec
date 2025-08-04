@@ -20,6 +20,7 @@
         </div>
         <h1 class="app-title" role="banner">screenspecs</h1>
         <div class="right-buttons">
+            <button class="header-button info-button" id="info-button" title="Show explanations" aria-label="Show explanations of metrics and calculations">info</button>
             <button class="header-button share-button" id="share-button" title="Copy shareable URL" aria-label="Copy shareable URL to clipboard">share</button>
             <button class="header-button reset-button" id="reset-button" title="Reset to default" aria-label="Reset all screens to default configuration">delete</button>
         </div>
@@ -181,6 +182,38 @@
         <br>
         &copy; 2025 Plab
     </footer>
+    
+    <!-- Info Modal -->
+    <div class="modal-overlay" id="info-modal" style="display: none;" role="dialog" aria-labelledby="info-modal-title" aria-modal="true">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="info-modal-title">Metrics Explained</h2>
+                <button class="modal-close" id="info-modal-close" aria-label="Close explanations dialog">close</button>
+            </div>
+            <div class="modal-body">
+                <div class="info-section">
+                    <h3>Field of View (FOV)</h3>
+                    <p>The horizontal and vertical angles that the monitor subtends at your viewing distance. Measured in degrees, FOV determines how much of your vision the screen occupies. Larger screens or closer viewing distances result in wider FOV.</p>
+                </div>
+                
+                <div class="info-section">
+                    <h3>Pixel Density (PPI)</h3>
+                    <p>Pixels Per Inch - measures how many pixels fit within one inch of the screen. Higher PPI means sharper text and images. Common ranges: 72-100 PPI (standard), 110-140 PPI (high density), 200+ PPI (ultra-high density).</p>
+                </div>
+                
+                <div class="info-section">
+                    <h3>Visual Density (PPD)</h3>
+                    <p>Pixels Per Degree - measures how many pixels fit within one degree of your field of view. This metric accounts for viewing distance and is crucial for determining perceived sharpness. 60+ PPD is considered "retina quality" where individual pixels become imperceptible.</p>
+                </div>
+                
+                <div class="info-section">
+                    <h3>Native vs Scaled Values</h3>
+                    <p><strong>Native:</strong> The physical properties of your monitor - actual resolution, true pixel density, and field of view based on physical dimensions.</p>
+                    <p><strong>Scaled:</strong> The effective values after applying display scaling (like 125% or 150% in Windows/macOS). Scaling changes the effective resolution and pixel density that applications see, making UI elements larger while maintaining sharpness.</p>
+                </div>
+            </div>
+        </div>
+    </div>
     
     <script type="module" src="src/js/main.js"></script>
 </body>

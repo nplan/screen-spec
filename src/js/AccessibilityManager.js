@@ -45,6 +45,7 @@ export class AccessibilityManager {
      */
     setupInitialAriaLabels() {
         // Header controls
+        this.setAriaLabel('#info-button', 'Show explanations of metrics and calculations');
         this.setAriaLabel('#share-button', 'Copy shareable URL to clipboard');
         this.setAriaLabel('#reset-button', 'Reset all screens to default configuration');
         

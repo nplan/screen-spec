@@ -80,27 +80,14 @@ fieldset legend {
 
 /* Only apply hover effects on devices that support hover */
 @media (hover: hover) {
-    /* Share button - extends header-button */
-    .share-button:hover {
+    .header-button:hover {
         background-color: var(--text-secondary);
-        color: var(--text-white);
+        color: var(--text-white);;
     }
 
     /* Reset button - extends header-button */
     .reset-button:hover {
         background-color: var(--btn-danger-bg);
-        color: var(--text-white);
-    }
-
-    /* Theme button - extends header-button */
-    .theme-toggle:hover {
-        background-color: var(--text-secondary);
-        color: var(--text-white);
-    }
-
-    /* Unit toggle button - extends header-button */
-    .unit-toggle:hover {
-        background-color: var(--text-secondary);
         color: var(--text-white);
     }
 }
@@ -434,6 +421,130 @@ fieldset legend {
     .mode-toggle .slider {
         width: 46px;
         height: 32px;
+    }
+}
+
+/* Modal styles */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.modal-content {
+    background-color: var(--bg-primary);
+    border-radius: 8px;
+    box-shadow: var(--shadow-large);
+    max-width: 600px;
+    width: 100%;
+    max-height: 80vh;
+    overflow-y: auto;
+    position: relative;
+}
+
+.modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 24px 16px;
+    border-bottom: 1px solid var(--border-primary);
+}
+
+.modal-header h2 {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: grid;
+    place-items: center;
+    font-family: 'Material Icons';
+    font-size: 20px;
+    transition: all 0.2s ease;
+}
+
+.modal-close:hover {
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+}
+
+.modal-body {
+    padding: 20px 24px 24px;
+}
+
+.info-section {
+    margin-bottom: 24px;
+}
+
+.info-section:last-child {
+    margin-bottom: 0;
+}
+
+.info-section h3 {
+    margin: 0 0 8px 0;
+    color: var(--text-primary);
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.info-section p {
+    margin: 0 0 8px 0;
+    color: var(--text-secondary);
+    line-height: 1.5;
+}
+
+.info-section p:last-child {
+    margin-bottom: 0;
+}
+
+.info-section strong {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+    .modal-overlay {
+        padding: 16px;
+    }
+    
+    .modal-header {
+        padding: 16px 20px 12px;
+    }
+    
+    .modal-header h2 {
+        font-size: 1.3rem;
+    }
+    
+    .modal-body {
+        padding: 16px 20px 20px;
+    }
+    
+    .info-section {
+        margin-bottom: 20px;
+    }
+    
+    .info-section h3 {
+        font-size: 1rem;
     }
     
     .mode-toggle.fov-selected .slider {
