@@ -8,7 +8,7 @@ export class UnitManager {
         this.currentUnit = 'cm'; // Default to centimeters
         this.storageKey = 'screen-spec-unit-preference';
         
-        // Load saved preference
+        // Load saved preference or detect from locale
         this.loadUnitPreference();
         
         // Unit conversion constants
@@ -30,16 +30,68 @@ export class UnitManager {
     }
 
     /**
-     * Load unit preference from localStorage
+     * Load unit preference from localStorage or detect from user's locale
      */
     loadUnitPreference() {
         try {
             const saved = localStorage.getItem(this.storageKey);
             if (saved && ['cm', 'in'].includes(saved)) {
                 this.currentUnit = saved;
+                console.log(`Loaded saved unit preference: ${saved}`);
+            } else {
+                // Auto-detect based on user's locale if no saved preference
+                this.currentUnit = this.detectUnitFromLocale();
+                console.log(`Auto-detected unit from locale: ${this.currentUnit}`);
             }
         } catch (error) {
             console.warn('Failed to load unit preference:', error);
+            // Fallback to locale detection
+            this.currentUnit = this.detectUnitFromLocale();
+            console.log(`Fallback auto-detected unit: ${this.currentUnit}`);
+        }
+    }
+
+    /**
+     * Detect appropriate unit system based on user's locale
+     * Returns 'in' for countries that use imperial system, 'cm' for metric
+     */
+    detectUnitFromLocale() {
+        try {
+            // Get user's locale
+            const locale = navigator.language || navigator.languages?.[0] || 'en-US';
+            
+            // Countries/regions that primarily use imperial system (inches/feet)
+            const imperialRegions = [
+                'US', // United States
+                'LR', // Liberia  
+                'MM'  // Myanmar (mixed system but often uses imperial for some measurements)
+            ];
+            
+            // Extract country code from locale (e.g., 'en-US' -> 'US')
+            const countryCode = locale.split('-')[1]?.toUpperCase();
+            
+            // Check if country uses imperial system
+            if (countryCode && imperialRegions.includes(countryCode)) {
+                console.log(`Detected imperial locale: ${locale}, setting units to inches`);
+                return 'in';
+            }
+            
+            // Special handling for locales without country codes
+            if (!countryCode) {
+                // For English without country code, default to metric (most English-speaking countries use metric)
+                // Exception: if the primary language suggests US English, use imperial
+                if (locale.toLowerCase() === 'en' || locale.toLowerCase() === 'en-us') {
+                    console.log(`Detected US English locale: ${locale}, setting units to inches`);
+                    return 'in';
+                }
+            }
+            
+            console.log(`Detected metric locale: ${locale}, setting units to centimeters`);
+            return 'cm';
+            
+        } catch (error) {
+            console.warn('Failed to detect locale for unit preference:', error);
+            return 'cm'; // Default to metric
         }
     }
 
@@ -62,12 +114,49 @@ export class UnitManager {
     }
 
     /**
+     * Check if current unit preference is auto-detected (not manually set)
+     */
+    isAutoDetected() {
+        try {
+            const saved = localStorage.getItem(this.storageKey);
+            return !saved || saved === null; // If no saved preference, it's auto-detected
+        } catch (error) {
+            console.warn('Failed to check auto-detection status:', error);
+            return true; // Default to auto-detected if can't access storage
+        }
+    }
+
+    /**
+     * Reset to auto-detected units based on locale
+     */
+    resetToAutoDetected() {
+        try {
+            localStorage.removeItem(this.storageKey);
+            const oldUnit = this.currentUnit;
+            this.currentUnit = this.detectUnitFromLocale();
+            
+            if (oldUnit !== this.currentUnit) {
+                this.updateUI();
+                console.log(`Units reset to auto-detected: ${this.currentUnit}`);
+                
+                // Announce unit change to accessibility manager
+                if (this.accessibilityManager) {
+                    const unitName = this.currentUnit === 'cm' ? 'centimeters' : 'inches';
+                    this.accessibilityManager.announceUnitChange(`distance units reset to auto-detected ${unitName}`);
+                }
+            }
+        } catch (error) {
+            console.warn('Failed to reset to auto-detected units:', error);
+        }
+    }
+
+    /**
      * Toggle between cm and inches
      */
     toggleUnit() {
         const oldUnit = this.currentUnit;
         this.currentUnit = this.currentUnit === 'cm' ? 'in' : 'cm';
-        this.saveUnitPreference();
+        this.saveUnitPreference(); // This marks it as user preference
         this.updateUI();
         
         console.log(`Unit toggled from ${oldUnit} to ${this.currentUnit}`);
@@ -276,6 +365,23 @@ export class UnitManager {
             return Math.round(convertedValue).toString();
         }
         return Math.round(convertedValue).toString();
+    }
+
+    /**
+     * Get locale information for debugging or display
+     */
+    getLocaleInfo() {
+        const locale = navigator.language || navigator.languages?.[0] || 'Unknown';
+        const countryCode = locale.split('-')[1]?.toUpperCase() || 'Unknown';
+        const autoDetectedUnit = this.detectUnitFromLocale();
+        
+        return {
+            locale,
+            countryCode,
+            autoDetectedUnit,
+            currentUnit: this.currentUnit,
+            isAutoDetected: this.isAutoDetected()
+        };
     }
 
     /**
