@@ -75,14 +75,8 @@ class URLManager {
         if (this.isUpdatingFromURL) return; // Prevent circular updates
         
         try {
-            const urlParams = this.encodeState(state);
-            const url = this.buildURL(urlParams);
-            
-            // Check URL length
-            if (url.length > this.config.MAX_URL_LENGTH) {
-                console.warn('URL too long for sharing, skipping URL update');
-                return false;
-            }
+            // Always keep clean URL in address bar - only store state in history
+            const cleanURL = window.location.origin + window.location.pathname;
             
             const stateData = {
                 screenSpec: state,
@@ -90,9 +84,9 @@ class URLManager {
             };
             
             if (replaceState) {
-                window.history.replaceState(stateData, '', url);
+                window.history.replaceState(stateData, '', cleanURL);
             } else {
-                window.history.pushState(stateData, '', url);
+                window.history.pushState(stateData, '', cleanURL);
             }
             
             return true;
@@ -108,8 +102,17 @@ class URLManager {
      */
     getStateFromURL() {
         try {
+            // First check URL parameters (for shared links)
             const urlParams = new URLSearchParams(window.location.search);
-            return this.decodeState(urlParams);
+            const urlState = this.decodeState(urlParams);
+            
+            if (urlState && this.validateState(urlState)) {
+                // If we found valid URL state, clean the URL immediately
+                this.clearURL();
+                return urlState;
+            }
+            
+            return null;
         } catch (error) {
             console.error('Failed to decode URL state:', error);
             return null;
@@ -303,7 +306,7 @@ class URLManager {
         try {
             let state = stateData;
             
-            // If no state provided, try to parse from URL
+            // If no state provided, check if there are URL parameters (shared link)
             if (!state) {
                 state = this.getStateFromURL();
             }
@@ -313,6 +316,15 @@ class URLManager {
                 this.stateChangeCallbacks.forEach(callback => {
                     try {
                         callback(state);
+                    } catch (error) {
+                        console.error('State change callback error:', error);
+                    }
+                });
+            } else {
+                // No valid state found, notify callbacks with null to trigger fallback to localStorage
+                this.stateChangeCallbacks.forEach(callback => {
+                    try {
+                        callback(null);
                     } catch (error) {
                         console.error('State change callback error:', error);
                     }
@@ -381,7 +393,7 @@ class URLManager {
      */
     clearURL() {
         const baseURL = window.location.origin + window.location.pathname;
-        window.history.replaceState({}, '', baseURL);
+        window.history.replaceState({ cleared: true, timestamp: Date.now() }, '', baseURL);
     }
 
     /**
@@ -410,6 +422,32 @@ class URLManager {
     }
 
     /**
+     * Check if this is a fresh page load with URL parameters (shared link)
+     * @returns {boolean} True if URL has parameters and no history state
+     */
+    isSharedLinkVisit() {
+        return this.hasURLState() && !window.history.state;
+    }
+
+    /**
+     * Process a shared link visit - extract state and clean URL
+     * @returns {Object|null} Extracted state or null if invalid
+     */
+    processSharedLink() {
+        if (!this.isSharedLinkVisit()) {
+            return null;
+        }
+        
+        const urlState = this.getStateFromURL();
+        if (urlState && this.validateState(urlState)) {
+            console.log('Processing shared link with state');
+            return urlState;
+        }
+        
+        return null;
+    }
+
+    /**
      * Get URL state information for debugging
      * @returns {Object} URL state info
      */
@@ -418,15 +456,20 @@ class URLManager {
         const params = new URLSearchParams(window.location.search);
         const hasState = this.hasURLState();
         const state = hasState ? this.getStateFromURL() : null;
+        const isSharedLink = this.isSharedLinkVisit();
+        const historyState = window.history.state;
         
         return {
             url,
             length: url.length,
             hasState,
+            isSharedLink,
             paramCount: Array.from(params.keys()).length,
             state,
+            historyState,
             maxLength: this.config.MAX_URL_LENGTH,
-            withinLimit: url.length <= this.config.MAX_URL_LENGTH
+            withinLimit: url.length <= this.config.MAX_URL_LENGTH,
+            addressBarClean: !hasState
         };
     }
 }

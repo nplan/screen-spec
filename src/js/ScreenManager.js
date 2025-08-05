@@ -57,17 +57,27 @@ class ScreenManager {
     init() {
         // Setup URL state change listener first
         this.urlManager.onStateChange((urlState) => {
-            this.restoreFromState(urlState);
+            if (urlState) {
+                // Valid state from URL (shared link or navigation)
+                this.restoreFromState(urlState);
+                // Save to localStorage for persistence
+                this.saveState();
+            } else {
+                // No URL state, try localStorage on navigation
+                const savedState = this.loadState();
+                if (savedState && savedState.screens && savedState.screens.length > 0) {
+                    this.restoreFromState(savedState);
+                }
+            }
         });
         
-        // Check for URL state first (highest priority)
-        const urlState = this.urlManager.getStateFromURL();
+        // Check for shared link first (URL parameters)
+        const urlState = this.urlManager.processSharedLink();
         let savedState = null;
         
         if (urlState && urlState.screens && urlState.screens.length > 0) {
-            // URL state takes precedence - restore from URL
+            // Shared link takes precedence - restore from URL and save to localStorage
             this.restoreFromState(urlState);
-            // Also save this state to localStorage for persistence
             this.saveState();
         } else {
             // Try to load from localStorage
@@ -76,7 +86,7 @@ class ScreenManager {
             if (savedState && savedState.screens && savedState.screens.length > 0) {
                 // Restore from saved state
                 this.restoreFromState(savedState);
-                // Update URL to reflect current state (without adding to history)
+                // Update browser history with clean state (without URL params)
                 this.updateURL(true);
             } else {
                 // Initialize with default screen if no saved state
@@ -595,7 +605,7 @@ class ScreenManager {
             this.urlUpdateTimeout = null;
         }
         
-        // Clear saved state and URL first
+        // Clear saved state and URL
         this.storage.clear();
         this.clearURL();
         
@@ -618,8 +628,12 @@ class ScreenManager {
             this.updatePillToggle('realSize');
         }
         
-        // Re-enable auto-save
+        // Re-enable auto-save and save the default state
         CONFIG.STORAGE.AUTO_SAVE = originalAutoSave;
+        this.saveState();
+        
+        // Update history with clean state
+        this.updateURL(true);
         
         // Announce reset to accessibility manager
         if (this.accessibilityManager) {
