@@ -92,7 +92,7 @@ fieldset legend {
     }
 }
 
-.share-button.success {
+.copy-url-button.success {
     background-color: var(--btn-success-bg) !important;
     color: var(--text-white) !important;
 }

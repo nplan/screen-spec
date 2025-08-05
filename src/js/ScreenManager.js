@@ -138,7 +138,7 @@ class ScreenManager {
         });
         
         // Setup share button
-        document.getElementById('share-button').addEventListener('click', () => {
+        document.getElementById('copy-url-button').addEventListener('click', () => {
             this.shareConfiguration();
         });
         
@@ -812,7 +812,7 @@ class ScreenManager {
      * @param {string} message - Message to show (for console/debugging)
      */
     showShareFeedback(success, message) {
-        const shareButton = document.getElementById('share-button');
+        const shareButton = document.getElementById('copy-url-button');
         if (!shareButton) return;
         
         console.log(message);
