@@ -6,6 +6,7 @@ import { ValidationManager } from './ValidationManager.js';
 import { StorageManager } from './StorageManager.js';
 import { URLManager } from './URLManager.js';
 import { UnitManager } from './UnitManager.js';
+import { AmazonLinkManager } from './AmazonLinkManager.js';
 
 // Screen Manager - Centralized state and operations
 class ScreenManager {
@@ -16,6 +17,7 @@ class ScreenManager {
         this.storage = new StorageManager();
         this.urlManager = new URLManager();
         this.unitManager = new UnitManager();
+        this.amazonLinkManager = new AmazonLinkManager();
         this.accessibilityManager = null; // Will be set by main.js
         this.screensContainer = document.getElementById(CONFIG.SELECTORS.SCREENS_CONTAINER_ID);
         this.addButton = document.getElementById(CONFIG.SELECTORS.ADD_SCREEN_BUTTON_ID);
@@ -164,6 +166,19 @@ class ScreenManager {
                 this.removeScreen(screenId);
             }
         });
+
+        // Populate preset options in the template
+        this.populateTemplatePresets();
+    }
+
+    /**
+     * Populate preset options in the template container from CONFIG.PRESETS
+     */
+    populateTemplatePresets() {
+        const template = this.screensContainer.querySelector('[data-screen-id="template"]');
+        if (template) {
+            this.populatePresetOptions(template);
+        }
     }
     
     addScreen(data = {}) {
@@ -284,19 +299,22 @@ class ScreenManager {
                 input.id = `${name}-${screenData.id}`;
                 
                 // Set input values, converting units for distance only
-                let value = screenData[name];
-                if (name === 'distance' && value) {
-                    value = this.unitManager.formatInputValue(value);
-                } else if (name === 'scaling') {
-                    value = value || CONFIG.DEFAULTS.PRESET_SCALING;
-                } else if (value === null || value === undefined) {
-                    value = '';
-                }
-                
-                input.value = value;
-                
-                if (name === 'curvature' && !screenData[name]) {
-                    input.placeholder = 'Flat';
+                // Skip preset here - we'll set it after populating options
+                if (name !== 'preset') {
+                    let value = screenData[name];
+                    if (name === 'distance' && value) {
+                        value = this.unitManager.formatInputValue(value);
+                    } else if (name === 'scaling') {
+                        value = value || CONFIG.DEFAULTS.PRESET_SCALING;
+                    } else if (value === null || value === undefined) {
+                        value = '';
+                    }
+                    
+                    input.value = value;
+                    
+                    if (name === 'curvature' && !screenData[name]) {
+                        input.placeholder = 'Flat';
+                    }
                 }
             }
             if (label) {
@@ -313,8 +331,48 @@ class ScreenManager {
         if (errorList) {
             errorList.id = `error-list-${screenData.id}`;
         }
+
+        // Populate preset options from CONFIG.PRESETS
+        this.populatePresetOptions(container);
+        
+        // Now set the preset value after options are populated
+        const presetSelect = container.querySelector(`#preset-${screenData.id}`);
+        if (presetSelect && screenData.preset !== undefined) {
+            presetSelect.value = screenData.preset;
+        }
         
         return container;
+    }
+
+    /**
+     * Populate preset options in a screen container from CONFIG.PRESETS
+     * @param {HTMLElement} container - The screen container element
+     */
+    populatePresetOptions(container) {
+        const presetSelect = container.querySelector('select[id^="preset-"]');
+        if (!presetSelect) return;
+
+        // Check if this is the template
+        const isTemplate = container.dataset.screenId === 'template';
+
+        // Clear existing options
+        presetSelect.innerHTML = '<option value="">Custom</option>';
+
+        // Add preset options from CONFIG.PRESETS
+        if (CONFIG.PRESETS) {
+            CONFIG.PRESETS.forEach(preset => {
+                const option = document.createElement('option');
+                option.value = preset.value;
+                option.textContent = preset.label;
+                
+                // Only set default selection for template
+                if (isTemplate && preset.selected) {
+                    option.selected = true;
+                }
+                
+                presetSelect.appendChild(option);
+            });
+        }
     }
     
     attachListeners(container, screenId) {
@@ -328,6 +386,9 @@ class ScreenManager {
             scaling: container.querySelector(`#scaling-${screenId}`)
         };
 
+        // Flag to prevent preset updates during initialization
+        let isInitializing = true;
+        
         // Debounce helper for validation
         const debounce = (func, wait) => {
             let timeout;
@@ -363,6 +424,9 @@ class ScreenManager {
         });
 
         const updatePreset = () => {
+            // Don't update preset during initialization
+            if (isInitializing) return;
+            
             const diagVal = parseFloat(inputs.diagonal.value);
             const wVal = parseInt(inputs.width.value);
             const hVal = parseInt(inputs.height.value);
@@ -431,6 +495,11 @@ class ScreenManager {
         }, 100));
         
         addImmediateValidation(inputs.scaling, 'scaling');
+        
+        // Clear initialization flag after a short delay to allow DOM to settle
+        setTimeout(() => {
+            isInitializing = false;
+        }, 100);
     }
     
     calculateAndRenderScreen(screenId) {
@@ -467,6 +536,11 @@ class ScreenManager {
                 !validation.validatedData.height || !validation.validatedData.distance || 
                 !validation.validatedData.scaling) {
                 this.renderEmptyOutputs(nativeOutputs, scaledOutputs, showScaled);
+                
+                // Still update Amazon link if we have diagonal and resolution
+                if (diagonal && width && height) {
+                    this.amazonLinkManager.updateAmazonLink(screenId, diagonal, [width, height]);
+                }
                 return;
             }
         }
@@ -483,6 +557,9 @@ class ScreenManager {
         try {
             const screenCalc = new Screen(calcDiagonal, [calcWidth, calcHeight], calcDistance, calcCurvature, calcScaling / 100);
             this.renderCalculatedOutputs(screenCalc, nativeOutputs, scaledOutputs, showScaled);
+            
+            // Update Amazon link with current screen specs
+            this.amazonLinkManager.updateAmazonLink(screenId, calcDiagonal, [calcWidth, calcHeight]);
         } catch (error) {
             console.error('Calculation error:', error);
             this.renderErrorOutputs(nativeOutputs, scaledOutputs, showScaled, error.message);

@@ -89,6 +89,14 @@ const CONFIG = {
         AUTO_SAVE: true
     },
 
+    // Amazon Affiliate Configuration
+    AMAZON: {
+        // Amazon Associates affiliate tag for monetization
+        // Format: 'your-affiliate-tag-20'
+        // This tag is appended to Amazon search URLs to track referrals
+        AFFILIATE_TAG: 'screenspecs0a-20'
+    },
+
     // UI Dimensions and Spacing
     UI: {
         // Canvas and Visualizer
@@ -144,6 +152,26 @@ const CONFIG = {
         TRANSITION_FAST: 'all 0.2s',
         TRANSITION_MEDIUM: 'all 0.3s ease-out'
     },
+
+    // Monitor Presets
+    PRESETS: [
+        { value: "24-1920-1080", diagonal: 24, width: 1920, height: 1080, name: "FHD", label: '24" FHD (1920 x 1080)', selected: true },
+        { value: "27-2560-1440", diagonal: 27, width: 2560, height: 1440, name: "QHD", label: '27" QHD (2560 x 1440)' },
+        { value: "27-3840-2160", diagonal: 27, width: 3840, height: 2160, name: "UHD 4K", label: '27" UHD 4K (3840 x 2160)' },
+        { value: "27-5120-2880", diagonal: 27, width: 5120, height: 2880, name: "5K", label: '27" 5K (5120 x 2880)' },
+        { value: "32-2560-1440", diagonal: 32, width: 2560, height: 1440, name: "QHD", label: '32" QHD (2560 x 1440)' },
+        { value: "32-3840-2160", diagonal: 32, width: 3840, height: 2160, name: "UHD 4K", label: '32" UHD 4K (3840 x 2160)' },
+        { value: "32-6144-3456", diagonal: 32, width: 6144, height: 3456, name: "6K", label: '32" 6K (6144 x 3456)' },
+        { value: "32-7680-4320", diagonal: 32, width: 7680, height: 4320, name: "8K", label: '32" 8K (7680 x 4320)' },
+        { value: "34-3440-1440", diagonal: 34, width: 3440, height: 1440, name: "UWQHD", label: '34" UWQHD (3440 x 1440)' },
+        { value: "38-3840-1600", diagonal: 38, width: 3840, height: 1600, name: "WQHD+", label: '38" WQHD+ (3840 x 1600)' },
+        { value: "40-5120-2160", diagonal: 40, width: 5120, height: 2160, name: "5K2K", label: '40" 5K2K (5120 x 2160)' },
+        { value: "43-3840-2160", diagonal: 43, width: 3840, height: 2160, name: "UHD 4K", label: '43" UHD 4K (3840 x 2160)' },
+        { value: "45-5120-2160", diagonal: 45, width: 5120, height: 2160, name: "5K2K", label: '45" 5K2K (5120 x 2160)' },
+        { value: "49-5120-1440", diagonal: 49, width: 5120, height: 1440, name: "DQHD", label: '49" DQHD (5120 x 1440)' },
+        { value: "57-7680-2160", diagonal: 57, width: 7680, height: 2160, name: "DUHD", label: '57" DUHD (7680 x 2160)' },
+        { value: "65-7680-4320", diagonal: 65, width: 7680, height: 4320, name: "8K", label: '65" 8K (7680 x 4320)' }
+    ],
 
     // Default Values
     DEFAULTS: {
@@ -273,6 +301,82 @@ const CONFIG = {
             ANNOUNCEMENT_DELAY: 100,
             ANNOUNCEMENT_INTERVAL: 1000
         }
+    }
+};
+
+/**
+ * Utility functions for managing presets
+ */
+CONFIG.PRESET_UTILS = {
+    /**
+     * Get a preset by its value
+     * @param {string} value - The preset value (e.g., "24-1920-1080")
+     * @returns {Object|null} The preset object or null if not found
+     */
+    getPresetByValue(value) {
+        return CONFIG.PRESETS.find(preset => preset.value === value) || null;
+    },
+
+    /**
+     * Get a preset by resolution
+     * @param {number} width - Screen width in pixels
+     * @param {number} height - Screen height in pixels
+     * @returns {Object|null} The first matching preset or null if not found
+     */
+    getPresetByResolution(width, height) {
+        return CONFIG.PRESETS.find(preset => preset.width === width && preset.height === height) || null;
+    },
+
+    /**
+     * Add a new preset to the configuration
+     * @param {Object} preset - The preset object
+     * @param {string} preset.value - Unique preset identifier
+     * @param {number} preset.diagonal - Screen diagonal in inches
+     * @param {number} preset.width - Screen width in pixels
+     * @param {number} preset.height - Screen height in pixels
+     * @param {string} preset.name - Short name for the resolution
+     * @param {string} preset.label - Display label for the preset
+     * @param {boolean} [preset.selected] - Whether this preset is selected by default
+     */
+    addPreset(preset) {
+        // Check if preset with same value already exists
+        const existingIndex = CONFIG.PRESETS.findIndex(p => p.value === preset.value);
+        if (existingIndex !== -1) {
+            // Update existing preset
+            CONFIG.PRESETS[existingIndex] = { ...CONFIG.PRESETS[existingIndex], ...preset };
+        } else {
+            // Add new preset
+            CONFIG.PRESETS.push(preset);
+        }
+    },
+
+    /**
+     * Remove a preset by its value
+     * @param {string} value - The preset value to remove
+     * @returns {boolean} True if preset was removed, false if not found
+     */
+    removePreset(value) {
+        const index = CONFIG.PRESETS.findIndex(preset => preset.value === value);
+        if (index !== -1) {
+            CONFIG.PRESETS.splice(index, 1);
+            return true;
+        }
+        return false;
+    },
+
+    /**
+     * Get all available resolution names from presets
+     * @returns {Object} Object mapping resolution strings to names
+     */
+    getResolutionNameMap() {
+        const resolutionMap = {};
+        CONFIG.PRESETS.forEach(preset => {
+            const resolutionKey = `${preset.width}x${preset.height}`;
+            if (preset.name && !resolutionMap[resolutionKey]) {
+                resolutionMap[resolutionKey] = preset.name;
+            }
+        });
+        return resolutionMap;
     }
 };
 

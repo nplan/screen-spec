@@ -551,3 +551,50 @@ fieldset legend {
         left: 52px;
     }
 }
+
+/* Amazon Link Styles */
+.amazon-link-container {
+    margin-top: 0.75rem;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+}
+
+.amazon-icon {
+    color: var(--text-tertiary);
+    display: flex;
+    align-items: center;
+}
+
+.amazon-icon .material-icons {
+    font-size: 1rem;
+}
+
+.amazon-link {
+    display: inline-flex;
+    align-items: baseline;
+    font-size: 0.8rem;
+    color: var(--text-tertiary);
+    text-decoration: none;
+    padding: 0.2rem 0.2rem;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    font-weight: normal;
+}
+
+.amazon-text {
+    font-family: "Amazon Ember", Arial, sans-serif;
+    font-weight: bold;
+    text-transform: lowercase;
+}
+
+.amazon-link:hover {
+    color: var(--text-secondary);
+}
+
+.amazon-link:focus-visible {
+    outline: 2px solid var(--accent-primary);
+    outline-offset: 2px;
+}
