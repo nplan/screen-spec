@@ -4,26 +4,15 @@
 const CONFIG = {
     // Color Palette
     COLORS: {
+        // Screen visualization colors
         SCREEN_COLORS: ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FECA57', '#FF9FF3', '#54A0FF'],
         
-        // CSS Colors (for reference, actual usage remains in CSS)
-        PRIMARY_BLUE: '#007bff',
-        PRIMARY_BLUE_HOVER: '#0056b3',
-        SUCCESS_GREEN: '#28a745',
-        DANGER_RED: '#f44336',
-        WARNING_ORANGE: '#ffc107',
-        TEXT_DARK: '#333',
-        TEXT_MEDIUM: '#666',
-        TEXT_LIGHT: '#999',
-        BORDER_LIGHT: '#e9ecef',
-        BACKGROUND_LIGHT: '#f8f9fa',
-        
-        // Transparency levels
+        // Transparency and label styling
         SCREEN_FILL_OPACITY: '15', // Used as hex suffix for screen fill colors
         LABEL_SHADOW: 'rgba(0, 0, 0, 0.7)',
         LABEL_TEXT_SECONDARY: 'rgba(255, 255, 255, 0.8)',
         
-        // Theme Colors
+        // Theme Colors for JavaScript usage
         LIGHT: {
             BACKGROUND: '#f8f9fa',
             SURFACE: '#ffffff',
