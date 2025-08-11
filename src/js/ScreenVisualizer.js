@@ -262,7 +262,7 @@ class ScreenVisualizer {
             };
         });
 
-        // Second pass: detect and resolve overlaps
+        // Second pass: detect and resolve overlaps with simple single-pass approach
         const resolvedLabels = [...labels];
         
         // Sort labels by y position, then by x position for consistent processing
@@ -271,7 +271,7 @@ class ScreenVisualizer {
             .sort((a, b) => a.label.y - b.label.y || a.label.x - b.label.x)
             .map(item => item.originalIndex);
 
-        // Process each label and check for overlaps with previously processed labels
+        // Simple single-pass overlap resolution
         for (let i = 0; i < sortedIndices.length; i++) {
             const currentIndex = sortedIndices[i];
             const currentLabel = resolvedLabels[currentIndex];
@@ -282,24 +282,16 @@ class ScreenVisualizer {
                 const otherLabel = resolvedLabels[otherIndex];
                 
                 if (this.labelsOverlap(currentLabel, otherLabel)) {
-                    // Move current label to the right of the overlapping label with padding
-                    const padding = CONFIG.UI.LABEL_SPACING; // pixels between labels
-                    currentLabel.x = otherLabel.x + otherLabel.width + padding;
+                    // Simple strategy: move current label to the right with padding
+                    const padding = CONFIG.UI.LABEL_SPACING;
+                    const newX = otherLabel.x + otherLabel.width + padding;
                     
-                    // If moved label goes beyond screen bounds, try to fit it within screen width
+                    // Constrain to screen bounds
                     const maxX = currentLabel.screenRect.x + currentLabel.screenRect.width - currentLabel.width;
-                    if (currentLabel.x > maxX) {
-                        currentLabel.x = maxX;
-                        
-                        // If still overlapping after constraining to screen, move other label left
-                        if (this.labelsOverlap(currentLabel, otherLabel)) {
-                            const shiftAmount = (otherLabel.x + otherLabel.width + padding) - currentLabel.x;
-                            otherLabel.x = Math.max(otherLabel.screenRect.x, otherLabel.x - shiftAmount);
-                        }
-                    }
+                    currentLabel.x = Math.min(newX, Math.max(currentLabel.screenRect.x, maxX));
                     
-                    // Recheck this label against all previously processed labels
-                    j = -1; // Will be incremented to 0 in next iteration
+                    // No recursive checking - accept this position even if it still overlaps
+                    break;
                 }
             }
         }
