@@ -131,11 +131,12 @@ class ScreenManager {
         if (addButton) {
             addButton.addEventListener('click', () => {
                 if (this.screens.length < 4) {
+                    const nextPreset = this.getNextBiggerPreset();
                     this.addScreen({
-                        preset: '24-1920-1080',
-                        diagonal: CONFIG.DEFAULTS.PRESET_DIAGONAL,
-                        width: CONFIG.DEFAULTS.PRESET_RESOLUTION[0],
-                        height: CONFIG.DEFAULTS.PRESET_RESOLUTION[1],
+                        preset: nextPreset.value,
+                        diagonal: nextPreset.diagonal,
+                        width: nextPreset.width,
+                        height: nextPreset.height,
                         distance: CONFIG.DEFAULTS.PRESET_DISTANCE,
                         curvature: CONFIG.DEFAULTS.PRESET_CURVATURE,
                         scaling: CONFIG.DEFAULTS.PRESET_SCALING
@@ -179,6 +180,39 @@ class ScreenManager {
         if (template) {
             this.populatePresetOptions(template);
         }
+    }
+    
+    /**
+     * Get the next available preset that's not already in use
+     * @returns {Object} Next available preset configuration
+     */
+    getNextBiggerPreset() {
+        // Sort presets by diagonal size
+        const sortedPresets = [...CONFIG.PRESETS].sort((a, b) => a.diagonal - b.diagonal);
+        
+        if (this.screens.length === 0) {
+            // If no screens exist, return the first preset (24")
+            return sortedPresets[0];
+        }
+        
+        // Get all diagonal sizes currently in use
+        const usedDiagonals = new Set(this.screens.map(screen => screen.diagonal).filter(d => d != null));
+        
+        // Find the largest diagonal among existing screens
+        const maxExistingDiagonal = Math.max(...this.screens.map(screen => screen.diagonal || 0));
+        
+        // First, try to find the next bigger preset that's not already used
+        let nextPreset = sortedPresets.find(preset => 
+            preset.diagonal > maxExistingDiagonal && !usedDiagonals.has(preset.diagonal)
+        );
+        
+        // If no bigger unused preset exists, try to find any unused preset (smaller or bigger)
+        if (!nextPreset) {
+            nextPreset = sortedPresets.find(preset => !usedDiagonals.has(preset.diagonal));
+        }
+        
+        // If all presets are used, return the largest one (fallback)
+        return nextPreset || sortedPresets[sortedPresets.length - 1];
     }
     
     addScreen(data = {}) {

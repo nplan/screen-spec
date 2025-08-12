@@ -107,7 +107,7 @@ const CONFIG = {
         LABEL_HEIGHT: 30, // pixels
         LABEL_PADDING: 5, // extra padding for label width
         LABEL_SPACING: 4, // pixels between overlapping labels
-        LABEL_BORDER_RADIUS: 4,
+        LABEL_BORDER_RADIUS: 8,
         LABEL_TEXT_PADDING: 10, // padding inside label
         LABEL_NUMBER_SPACING: 5, // gap between number and inches
         

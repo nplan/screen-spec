@@ -219,7 +219,7 @@ class ScreenVisualizer {
         const availableHeight = this.logicalHeight - 2 * margin;
         const scale = Math.min(availableWidth / maxWidth, availableHeight / maxHeight);
 
-        // Collect all screen rectangles for label positioning
+        // Collect all screen rectangles
         const screenRects = screenDimensions.map(({ width, height, screen }, index) => {
             const screenWidth = width * scale;
             const screenHeight = height * scale;
@@ -229,96 +229,14 @@ class ScreenVisualizer {
 
             return { x, y, width: screenWidth, height: screenHeight, screen, index, screenNumber: screen.screenNumber || (index + 1) };
         });
-
-        // Calculate label positions and resolve overlaps
-        const labelPositions = this.calculateLabelPositions(screenRects);
         
-        // Draw all screens with resolved label positioning
+        // Draw all screens with labels in top-left corner
         screenRects.forEach(rect => {
-            const labelPos = labelPositions[rect.index];
-            this.drawScreen(rect.x, rect.y, rect.width, rect.height, rect.screen, rect.screenNumber, labelPos);
+            this.drawScreen(rect.x, rect.y, rect.width, rect.height, rect.screen, rect.screenNumber);
         });
     }
 
-    calculateLabelPositions(screenRects) {
-        // First pass: calculate initial label positions and dimensions
-        const labels = screenRects.map(rect => {
-            const screenNumber = rect.screenNumber;
-            const labelText = `${screenNumber} ${rect.screen.diagonal}"`;
-            
-            this.ctx.font = `bold ${CONFIG.UI.FONT_SIZE_LABEL_NUMBER}px ${CONFIG.UI.FONT_FAMILY_MONO}`;
-            const textMetrics = this.ctx.measureText(labelText);
-            const labelWidth = textMetrics.width + CONFIG.UI.LABEL_PADDING; // more padding
-            const labelHeight = CONFIG.UI.LABEL_HEIGHT; // slightly taller
-            
-            return {
-                index: rect.index,
-                x: rect.x,
-                y: rect.y,
-                width: labelWidth,
-                height: labelHeight,
-                text: labelText,
-                screenRect: rect
-            };
-        });
-
-        // Second pass: detect and resolve overlaps with simple single-pass approach
-        const resolvedLabels = [...labels];
-        
-        // Sort labels by y position, then by x position for consistent processing
-        const sortedIndices = labels
-            .map((label, i) => ({ label, originalIndex: i }))
-            .sort((a, b) => a.label.y - b.label.y || a.label.x - b.label.x)
-            .map(item => item.originalIndex);
-
-        // Simple single-pass overlap resolution
-        for (let i = 0; i < sortedIndices.length; i++) {
-            const currentIndex = sortedIndices[i];
-            const currentLabel = resolvedLabels[currentIndex];
-            
-            // Check overlap with all previously processed labels
-            for (let j = 0; j < i; j++) {
-                const otherIndex = sortedIndices[j];
-                const otherLabel = resolvedLabels[otherIndex];
-                
-                if (this.labelsOverlap(currentLabel, otherLabel)) {
-                    // Simple strategy: move current label to the right with padding
-                    const padding = CONFIG.UI.LABEL_SPACING;
-                    const newX = otherLabel.x + otherLabel.width + padding;
-                    
-                    // Constrain to screen bounds
-                    const maxX = currentLabel.screenRect.x + currentLabel.screenRect.width - currentLabel.width;
-                    currentLabel.x = Math.min(newX, Math.max(currentLabel.screenRect.x, maxX));
-                    
-                    // No recursive checking - accept this position even if it still overlaps
-                    break;
-                }
-            }
-        }
-
-        // Convert back to indexed object
-        const result = {};
-        resolvedLabels.forEach(label => {
-            result[label.index] = {
-                x: label.x,
-                y: label.y,
-                width: label.width,
-                height: label.height,
-                text: label.text
-            };
-        });
-
-        return result;
-    }
-
-    labelsOverlap(label1, label2) {
-        return !(label1.x + label1.width <= label2.x || 
-                 label2.x + label2.width <= label1.x || 
-                 label1.y + label1.height <= label2.y || 
-                 label2.y + label2.height <= label1.y);
-    }
-
-    drawScreen(x, y, width, height, screen, screenNumber, labelPosition) {
+    drawScreen(x, y, width, height, screen, screenNumber) {
         const color = this.colors[(screenNumber - 1) % this.colors.length];
         
         this.ctx.strokeStyle = color;
@@ -328,26 +246,24 @@ class ScreenVisualizer {
         this.ctx.fillStyle = color + CONFIG.COLORS.SCREEN_FILL_OPACITY;
         this.ctx.fillRect(x, y, width, height);
 
-        // Use pre-calculated label position
-        const labelX = labelPosition.x;
-        const labelY = labelPosition.y;
-        const labelWidth = labelPosition.width;
-        const labelHeight = labelPosition.height;
-        const labelText = labelPosition.text;
+        // Draw label in top-left corner with transparency
+        const labelText = `${screenNumber} ${screen.diagonal}"`;
         
-        // Determine which corners should be rounded based on label position relative to screen
-        const isAtScreenLeft = labelX <= x + 1;
-        const isAtScreenTop = labelY <= y + 1;
-        const isAtScreenRight = labelX + labelWidth >= x + width - 1;
-        const isAtScreenBottom = labelY + labelHeight >= y + height - 1;
+        this.ctx.font = `bold ${CONFIG.UI.FONT_SIZE_LABEL_NUMBER}px ${CONFIG.UI.FONT_FAMILY_MONO}`;
+        const textMetrics = this.ctx.measureText(labelText);
+        const labelWidth = textMetrics.width + CONFIG.UI.LABEL_PADDING;
+        const labelHeight = CONFIG.UI.LABEL_HEIGHT;
         
-        // Draw rounded rectangle with selective corners
+        const labelX = x;
+        const labelY = y;
+        
+        // Draw semi-transparent rounded rectangle background
         this.drawRoundedRect(labelX, labelY, labelWidth, labelHeight, CONFIG.UI.LABEL_BORDER_RADIUS, {
-            topLeft: !isAtScreenLeft && !isAtScreenTop,
-            topRight: !isAtScreenRight && !isAtScreenTop,
-            bottomLeft: !isAtScreenLeft && !isAtScreenBottom,
-            bottomRight: !isAtScreenRight && !isAtScreenBottom
-        }, color);
+            topLeft: false,
+            topRight: false,
+            bottomLeft: false,
+            bottomRight: true
+        }, color + '80'); // 50% transparency
         
         // Draw text with emphasized number
         this.ctx.textAlign = 'left';
@@ -361,11 +277,7 @@ class ScreenVisualizer {
         let textX = labelX + CONFIG.UI.LABEL_TEXT_PADDING;
         const textY = labelY + labelHeight / 2;
         
-        // Screen labels need high contrast against colored backgrounds
-        // Use white for primary text and semi-transparent white for secondary
-        // This ensures readability regardless of screen color or theme
-        
-        // Draw number (more pronounced) - always white for contrast
+        // Draw number (more pronounced) - pure white for visibility
         this.ctx.fillStyle = 'white';
         this.ctx.font = `bold ${CONFIG.UI.FONT_SIZE_LABEL_NUMBER}px ${CONFIG.UI.FONT_FAMILY_MONO}`;
         this.ctx.fillText(number, textX, textY);
@@ -374,8 +286,8 @@ class ScreenVisualizer {
         const numberWidth = this.ctx.measureText(number).width;
         textX += numberWidth + CONFIG.UI.LABEL_NUMBER_SPACING; // small gap
         
-        // Draw inches (less pronounced) - semi-transparent white for contrast
-        this.ctx.fillStyle = CONFIG.COLORS.LABEL_TEXT_SECONDARY;
+        // Draw inches (less pronounced) - pure white for visibility
+        this.ctx.fillStyle = 'white';
         this.ctx.font = `${CONFIG.UI.FONT_SIZE_LABEL_INCHES}px ${CONFIG.UI.FONT_FAMILY_MONO}`;
         this.ctx.fillText(inches, textX, textY);
     }
