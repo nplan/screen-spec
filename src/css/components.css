@@ -422,6 +422,10 @@ fieldset legend {
         width: 46px;
         height: 32px;
     }
+    
+    .mode-toggle.fov-selected .slider {
+        left: 52px;
+    }
 }
 
 /* Modal styles */
@@ -545,10 +549,6 @@ fieldset legend {
     
     .info-section h3 {
         font-size: 1rem;
-    }
-    
-    .mode-toggle.fov-selected .slider {
-        left: 52px;
     }
 }
 
